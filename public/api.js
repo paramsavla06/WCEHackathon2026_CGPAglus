@@ -1,10 +1,10 @@
 /**
  * CivicEye API Client
- * Handles all communication with the backend (http://localhost:4000)
+ * Handles all communication with the backend (https://wcehackathon2026-cgpaglus.onrender.com)
  * Falls back to localStorage transparently if offline.
  */
 
-const API = 'http://localhost:4000'
+const API = 'https://wcehackathon2026-cgpaglus.onrender.com'
 
 // ── Token management ──────────────────────────────────────────────────────────
 export function getToken() { return localStorage.getItem('ce_token') || null }

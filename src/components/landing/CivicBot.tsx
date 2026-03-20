@@ -114,11 +114,11 @@ export default function CivicBot() {
         const d = await res.json()
         if (d.display_name) address = d.display_name.split(', ').slice(0, 4).join(', ')
         city = d.address?.city || d.address?.town || d.address?.village || d.address?.municipality || 'Mumbai'
-      } catch (_) {}
+      } catch (_) { }
 
       const cityMatch = CITIES.find(c => city.toLowerCase().includes(c.toLowerCase())) || CITIES.find(c => address.toLowerCase().includes(c.toLowerCase())) || city
       const d2 = { ...dataRef.current, latitude, longitude, detectedAddress: address, city: cityMatch, location: address }
-      
+
       setReportData(d2); dataRef.current = d2
       addBot('Location Detected!\n\n' + address + '\n\nAny nearby landmark? (Optional)', ['Skip'])
       setReportStep(5); stepRef.current = 5
@@ -137,7 +137,7 @@ export default function CivicBot() {
       const photoData = ev.target?.result as string
       const d: Record<string, any> = { ...dataRef.current, photo: photoData }
       setReportData(d); dataRef.current = d
-      
+
       const step = stepRef.current
       if (step === 0) addBot(`Photo attached! Please select a category to continue.`)
       else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
@@ -150,7 +150,7 @@ export default function CivicBot() {
         try {
           const formData = new FormData()
           formData.append('image', file)
-          const resp = await fetch('http://localhost:4000/api/predict', { method: 'POST', body: formData })
+          const resp = await fetch('https://wcehackathon2026-cgpaglus.onrender.com/api/predict', { method: 'POST', body: formData })
           if (resp.ok) {
             const pred = await resp.json()
             const sev = pred.severity?.toLowerCase() || 'medium'
@@ -207,7 +207,7 @@ export default function CivicBot() {
     }
 
     try {
-      const resp = await fetch('http://localhost:4000/api/reports', {
+      const resp = await fetch('https://wcehackathon2026-cgpaglus.onrender.com/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -324,10 +324,10 @@ export default function CivicBot() {
       if (lower.includes('sign in') || lower.includes('login')) {
         const loginSection = document.getElementById('login')
         if (loginSection) {
-            loginSection.scrollIntoView({ behavior: 'smooth' })
-            addBot('Redirecting you to the login section. Please sign in to continue.', ['Close'])
+          loginSection.scrollIntoView({ behavior: 'smooth' })
+          addBot('Redirecting you to the login section. Please sign in to continue.', ['Close'])
         } else {
-            addBot('Please visit the login page to sign in to your CivicEye account.', ['Close'])
+          addBot('Please visit the login page to sign in to your CivicEye account.', ['Close'])
         }
       } else {
         addBot('Please log in to use CivicBot and report issues.', ['Sign in'])

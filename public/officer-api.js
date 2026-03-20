@@ -3,10 +3,10 @@
  * Drop this script at the end of officer.html (before </body>)
  * and it will wire up all backend calls automatically.
  */
-;(function () {
+; (function () {
   'use strict'
 
-  const CE_API = 'http://localhost:4000'
+  const CE_API = 'https://wcehackathon2026-cgpaglus.onrender.com'
   const getToken = () => localStorage.getItem('ce_token')
   const getOfficer = () => { try { return JSON.parse(localStorage.getItem('ce_officer') || 'null') } catch { return null } }
 
@@ -300,7 +300,7 @@
     function wireZone(zoneId, fileId) {
       const oldZone = document.getElementById(zoneId)
       if (!oldZone) return
-      
+
       // Clone zone to strip existing problematic officer.html event listeners
       const zone = oldZone.cloneNode(true)
       oldZone.parentNode.replaceChild(zone, oldZone)
@@ -365,7 +365,7 @@
         buildSlaListFromBackend()
         await loadStats()
         if (window.toast) window.toast('Resolution proof submitted — citizens notified!')
-        
+
         // Clear files for next time
         document.getElementById('baBeforeFile').value = ''
         document.getElementById('baAfterFile').value = ''
@@ -392,13 +392,13 @@
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0]
       const noteEl = document.getElementById('proofNote')
       if (noteEl) noteEl.value = ''
-      
+
       const engSelect = document.getElementById('proofEngineer')
       if (engSelect && window.TEAM) {
-          engSelect.innerHTML = '<option value="">-- Select Officer --</option>' + 
-              window.TEAM.map(m => `<option value="${m.name}" ${r.assignedTo === m.name ? 'selected' : ''}>${m.name} (${m.role})</option>`).join('')
+        engSelect.innerHTML = '<option value="">-- Select Officer --</option>' +
+          window.TEAM.map(m => `<option value="${m.name}" ${r.assignedTo === m.name ? 'selected' : ''}>${m.name} (${m.role})</option>`).join('')
       }
-      
+
       // Reset previews and inputs
       document.getElementById('baBeforeFile').value = ''
       document.getElementById('baAfterFile').value = ''
@@ -452,13 +452,13 @@
       const reportId = sel.dataset.id
       const officerName = sel.value
       if (!officerName) return
-      
+
       try {
         sel.disabled = true
         await updateReportStatus(reportId, { status: 'Assigned', assignedTo: officerName })
         renderFeedFromBackend()
         if (window.toast) window.toast(`${reportId} successfully assigned to ${officerName}`)
-      } catch (err) { 
+      } catch (err) {
         if (window.toast) window.toast('Error: ' + err.message)
         sel.disabled = false
       }

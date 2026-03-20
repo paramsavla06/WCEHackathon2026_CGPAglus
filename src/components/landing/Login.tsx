@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const API = 'http://localhost:4000'
+const API = 'https://wcehackathon2026-cgpaglus.onrender.com'
 
 interface LoginProps {
     onShowToast: (msg: string) => void
