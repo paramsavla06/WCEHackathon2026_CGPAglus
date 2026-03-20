@@ -151,7 +151,12 @@
           ${r.votes > 0 ? `<div class="rc-votes"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>${r.votes}</div>` : ''}
         </div>
         <div class="rc-actions">
-          ${r.status === 'Submitted' || r.status === 'Verified' ? `<button class="act-btn act-assign" data-id="${r.id}" data-act="assign">Assign</button>` : ''}
+          ${(r.status === 'Submitted' || r.status === 'Verified') ? `
+            <select class="act-sel act-assign-sel" data-id="${r.id}">
+              <option value="">Assign To...</option>
+              ${(window.TEAM || []).map(m => `<option value="${m.name}">${m.name} (${m.role})</option>`).join('')}
+            </select>
+          ` : ''}
           ${r.status === 'Assigned' || r.status === 'In Progress' ? `<button class="act-btn act-proof" data-id="${r.id}" data-act="proof">Upload Proof</button>` : ''}
           ${r.status === 'Resolved' ? `<button class="act-btn act-view" data-id="${r.id}" data-act="view">View Proof</button>` : ''}
           ${r.status !== 'Resolved' ? `<button class="act-btn act-escalate" data-id="${r.id}" data-act="escalate">Escalate</button>` : ''}
@@ -441,6 +446,24 @@
       if (window.toast) window.toast('Feed refreshed from server')
     })
     // Delegated action clicks on report list
+    document.getElementById('reportList')?.addEventListener('change', async e => {
+      const sel = e.target.closest('.act-assign-sel')
+      if (!sel) return
+      const reportId = sel.dataset.id
+      const officerName = sel.value
+      if (!officerName) return
+      
+      try {
+        sel.disabled = true
+        await updateReportStatus(reportId, { status: 'Assigned', assignedTo: officerName })
+        renderFeedFromBackend()
+        if (window.toast) window.toast(`${reportId} successfully assigned to ${officerName}`)
+      } catch (err) { 
+        if (window.toast) window.toast('Error: ' + err.message)
+        sel.disabled = false
+      }
+    })
+
     document.getElementById('reportList')?.addEventListener('click', async e => {
       const btn = e.target.closest('[data-act]')
       if (!btn) return

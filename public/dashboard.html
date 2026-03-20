@@ -1281,6 +1281,30 @@
             color: var(--txt2)
         }
 
+        .act-sel {
+            padding: 5px 8px;
+            background: rgba(61, 127, 255, .1);
+            border: .5px solid rgba(61, 127, 255, .3);
+            border-radius: 6px;
+            color: #3d7fff;
+            font-size: 10px;
+            font-weight: 600;
+            font-family: 'Sora', sans-serif;
+            cursor: pointer;
+            transition: all .2s;
+            outline: none
+        }
+
+        .act-sel:hover:not(:disabled) {
+            background: rgba(61, 127, 255, .2);
+            transform: translateY(-1px)
+        }
+
+        .act-sel:disabled {
+            opacity: .6;
+            cursor: not-allowed
+        }
+
         /* ══ NEW PULSE ══ */
         @keyframes newPulse {
             0% {
@@ -4253,7 +4277,7 @@
 
         .db-lang-dd {
             position: absolute;
-            top: calc(100%+6px);
+            top: calc(100% + 6px);
             right: 0;
             background: var(--surf);
             border: .5px solid var(--b2);
@@ -4976,9 +5000,9 @@
             <div class="db-vis" title="Total portal visitors">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" aria-hidden="true">
-                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <path d="M17 21v-2a4 4 0 01-4-4H5a4 4 0 01-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                    <path d="M23 21v-2a4 4 0 01-3-3.87M16 3.13a4 4 0 010 7.75" />
                 </svg>
                 Visitors: <span class="db-vis-num" id="dbVisNum">1,24,863</span>
             </div>
@@ -5125,55 +5149,55 @@
             <div class="db-modal-section">
                 <div class="db-modal-sub">Accessibility Features</div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Skip Navigation</strong>Keyboard users can jump directly to main content.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Text Resize (A− A A+)</strong>Three font size levels without loss of content or
                         functionality.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>5 Colour Schemes</strong>Default, Light, High Contrast (black/yellow), Night Blue,
                         Forest Green — catering to colour blindness and low vision.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>10 Indian Languages</strong>Full UI translation across English, Hindi, Marathi,
                         Gujarati, Bengali, Tamil, Telugu, Kannada, Punjabi, and Odia with location auto-detection.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Screen Reader Compatible</strong>Tested with NVDA, JAWS, and ORCA. All interactive
                         elements have ARIA labels. Live regions announce dynamic updates.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Keyboard Navigation</strong>Full portal navigable using Tab, Enter, and arrow keys.
                         Escape closes all modals and dropdowns.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Text Spacing</strong>Increased line height (1.9×) and letter spacing available for
                         users with dyslexia.</div>
                 </div>
                 <div class="db-modal-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--saffron)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                     <div><strong>Big Cursor Mode</strong>Enlarged custom cursor for users with motor difficulties.</div>
@@ -5208,7 +5232,7 @@
                     <div class="tn-notif-pip"></div>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                         stroke-linecap="round">
-                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M18 8A6 6 0 016 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 01-3.46 0" />
                     </svg>
                 </button>
@@ -5289,7 +5313,7 @@
                 </div>
                 <!-- USER PANEL -->
                 <div class="user-col">
-                    <div class="u-hero rv">
+                    <div class="u-hero">
                         <div class="u-hero-top">
                             <div class="u-av-wrap">
                                 <div class="u-av" id="uAv">AS</div>
@@ -5312,15 +5336,15 @@
                             </div>
                         </div>
                         <div class="stat3">
-                            <div class="s3c rv">
+                            <div class="s3c">
                                 <div class="s3v" id="s3a" data-v="3">0</div>
                                 <div class="s3l" id="s3l-a">Reported</div>
                             </div>
-                            <div class="s3c rv" style="transition-delay:.06s">
+                            <div class="s3c" style="transition-delay:.06s">
                                 <div class="s3v" id="s3b" data-v="1">0</div>
                                 <div class="s3l" id="s3l-b">Resolved</div>
                             </div>
-                            <div class="s3c rv" style="transition-delay:.12s">
+                            <div class="s3c" style="transition-delay:.12s">
                                 <div class="s3v" id="s3c" data-v="104">0</div>
                                 <div class="s3l" id="s3l-c">Upvotes</div>
                             </div>
@@ -5549,14 +5573,14 @@
     <script>
     (function(){
         const ISSUE_CATEGORIES = [
-            {id:'pothole',label:'Pothole',icon:'🕳️',followUp:'Can you describe the size and exact location of the pothole?'},
-            {id:'streetlight',label:'Streetlight Failure',icon:'💡',followUp:'Is the light completely out or flickering?'},
-            {id:'waste',label:'Waste Overflow',icon:'🗑️',followUp:'How long has this been overflowing?'},
-            {id:'water',label:'Water Pipe Leak',icon:'💧',followUp:'Is the water flooding the road?'},
-            {id:'road',label:'Road Collapse',icon:'🛣️',followUp:'How large is the collapse?'},
-            {id:'drainage',label:'Blocked Drainage',icon:'🚰',followUp:'Is this causing waterlogging?'},
-            {id:'park',label:'Park Damage',icon:'🌳',followUp:'What kind of damage?'},
-            {id:'noise',label:'Noise Complaint',icon:'🔊',followUp:'What time of day is the noise happening?'},
+            {id:'pothole',label:'Pothole',icon:'',followUp:'Can you describe the size and exact location of the pothole?'},
+            {id:'streetlight',label:'Streetlight Failure',icon:'',followUp:'Is the light completely out or flickering?'},
+            {id:'waste',label:'Waste Overflow',icon:'',followUp:'How long has this been overflowing?'},
+            {id:'water',label:'Water Pipe Leak',icon:'',followUp:'Is the water flooding the road?'},
+            {id:'road',label:'Road Collapse',icon:'',followUp:'How large is the collapse?'},
+            {id:'drainage',label:'Blocked Drainage',icon:'',followUp:'Is this causing waterlogging?'},
+            {id:'park',label:'Park Damage',icon:'',followUp:'What kind of damage?'},
+            {id:'noise',label:'Noise Complaint',icon:'',followUp:'What time of day is the noise happening?'},
         ]
         const CITIES = ['Mumbai','Delhi','Bengaluru','Chennai','Hyderabad','Pune','Kolkata','Ahmedabad','Jaipur','Lucknow','Other']
          const PREFIX = 'ce_'
@@ -5582,11 +5606,6 @@
         let currentLang = localStorage.getItem('ce_lang') || 'en'
         if (!STRINGS[currentLang]) currentLang = 'en'
         const T = () => STRINGS[currentLang] || STRINGS.en
-
-        // emoji stripper
-        function stripEmoji(str) {
-          return str.replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '').replace(/[\u2702\u2705\u2706\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u2660\u2663\u2665-\u267E\u2680-\u2692\u2694-\u2697\u2699\u269B\u269C\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26CE-\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2708\u2709\u270A-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF-\u27BF\u23E9-\u23F3\u23F8-\u23FA\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u231A\u231B\u24C2]/gu, '').trim()
-        }
 
         const fab = document.getElementById('cbFab')
         const win = document.getElementById('cbWindow')
@@ -5652,18 +5671,18 @@
         function addBot(text, replies, opts={}) {
             const wrap = document.createElement('div')
             wrap.className = 'cb2-msg cb2-bot'
-            wrap.textContent = stripEmoji(text)
+            wrap.textContent = text
 
             if (opts.showLocBtn || opts.showPhotoBtn) {
                 const acts = document.createElement('div'); acts.className = 'cb2-acts'
                 if (opts.showLocBtn) {
                     const b = document.createElement('button'); b.className = 'cb2-loc'
-                    b.textContent = detecting ? '🔄 Detecting…' : '📍 Detect Location'; b.disabled = detecting
+                    b.textContent = detecting ? T().detecting2 : T().locBtn; b.disabled = detecting
                     b.onclick = handleLocDetect; acts.appendChild(b)
                 }
                 if (opts.showPhotoBtn) {
                     const b = document.createElement('button'); b.className = 'cb2-photo'
-                    b.textContent = '📸 Add Photo'; b.onclick = () => fileInp.click(); acts.appendChild(b)
+                    b.textContent = T().photoBtn; b.onclick = () => fileInp.click(); acts.appendChild(b)
                 }
                 wrap.appendChild(acts)
             }
@@ -5748,23 +5767,14 @@
             }
 
             try {
-                const r = await fetch('http://localhost:4000/api/reports', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                })
-                if (!r.ok) {
-                    const errDesc = await r.json()
-                    throw new Error(errDesc.error || 'Server error')
-                }
-                const newReport = await r.json()
+                const newReport = await apiCall('POST', '/api/reports', payload)
                 
                 u.points=(u.points||0)+10; localStorage.setItem(PREFIX+'user',JSON.stringify(u))
                 setProgress(0)
-                addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\n🎫 ${newReport.id}\n${cat?.label}\n📍 ${data.location}, ${data.city}\n🏢 ${landmark}\n${data.photo?'📸 Photo attached\n':''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned! 🏆`,['Report another','Thank you!'])
+                addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo?'Photo attached\n':''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`,['Report another','Thank you!'])
                 localStorage.removeItem(PREFIX+'reports') // Invalidate to fetch fresh
             } catch (e) {
-                addBot(`❌ Failed to submit. Error: ${e.message}`,['Try again'])
+                addBot(`Failed to submit. Error: ${e.message}`,['Try again'])
             }
             step=0; data={}
         }
@@ -5799,15 +5809,15 @@
                 
                 const typedCityMatch = CITIES.find(c=>text.toLowerCase().includes(c.toLowerCase())) || 'Mumbai'
                 data={...data, location:text.trim(), city:typedCityMatch}; setProgress(4); step=4
-                addBot(`📍 ${text.trim()}\n\n🏢 Any nearby landmark? (Optional)`,['Skip'],{showPhotoBtn:!data.photo})
+                addBot(`${text.trim()}\n\nAny nearby landmark? (Optional)`,['Skip'],{showPhotoBtn:!data.photo})
                 return
             }
             if(step===4){
                 if(lower.includes('photo')||lower.includes('upload')){fileInp.click();return}
                 const lm=(lower==='skip'||lower==='none')?'Not specified':(text.trim()||'Not specified')
                 data={...data,landmark:lm}; step=5
-                if(data.photo) addBot(`🏢 ${lm}\n📸 Photo attached!\n\nReady to submit.`,['Submit Report'])
-                else addBot(`🏢 ${lm}\n\n📸 Add a photo? Reports with photos are 3× more likely to be resolved!`,['Yes, add photo','Skip & Submit'])
+                if(data.photo) addBot(`Landmark: ${lm}\nPhoto attached!\n\nReady to submit.`,['Submit Report'])
+                else addBot(`Landmark: ${lm}\n\nAdd a photo? Reports with photos are 3x more likely to be resolved!`,['Yes, add photo','Skip & Submit'])
                 return
             }
             if(step===5){
@@ -6218,15 +6228,18 @@
             document.getElementById('streakMsg').textContent = streak >= 5 ? `${streak} day streak — outstanding!` : streak > 0 ? `${streak} day streak — keep going!` : 'File a report to start'
             // my reports
             const ml = document.getElementById('myReportsList')
-            if (!R.length) { ml.innerHTML = '<div style="padding:12px 0;font-size:11.5px;color:var(--txt3);text-align:center">No reports yet</div>'; return }
-            const steps = ['Submitted', 'Verified', 'Assigned', 'In Progress', 'Resolved']
-            ml.innerHTML = R.map(r => {
-                const sm = SM[r.status] || SM['Submitted'], ico = TICO[r.type] || TICO.pothole, cur = r.currentStep ?? 0
-                return `<div class="mri rv"><div class="mri-ico" style="background:${r.bg || 'var(--safg)'};color:${r.col || 'var(--saffron)'}">${ico}</div>
-    <div class="mri-bd"><div class="mri-t">${r.title}</div><div class="mri-s">${r.location || r.id}</div></div>
-    <div class="mri-rhs"><div class="mri-st" style="background:${sm.bg};color:${sm.col}">${r.status}</div>
-    <div class="track5">${steps.map((_, i) => `<div class="t5d${i <= cur ? ' done' : ''}${i === cur ? ' act' : ''}"></div>`).join('')}</div></div></div>`
-            }).join('')
+            if (!R.length) { 
+                ml.innerHTML = '<div style="padding:12px 0;font-size:11.5px;color:var(--txt3);text-align:center">No reports yet</div>'
+            } else {
+                const steps = ['Submitted', 'Verified', 'Assigned', 'In Progress', 'Resolved']
+                ml.innerHTML = R.map(r => {
+                    const sm = SM[r.status] || SM['Submitted'], ico = TICO[r.type] || TICO.pothole, cur = r.currentStep ?? 0
+                    return `<div class="mri rv"><div class="mri-ico" style="background:${r.bg || 'var(--safg)'};color:${r.col || 'var(--saffron)'}">${ico}</div>
+        <div class="mri-bd"><div class="mri-t">${r.title}</div><div class="mri-s">${r.location || r.id}</div></div>
+        <div class="mri-rhs"><div class="mri-st" style="background:${sm.bg};color:${sm.col}">${r.status}</div>
+        <div class="track5">${steps.map((_, i) => `<div class="t5d${i <= cur ? ' done' : ''}${i === cur ? ' act' : ''}"></div>`).join('')}</div></div></div>`
+                }).join('')
+            }
             // badges
             const BDGS = [
                 { ico: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg>`, l: 'First Report', e: R.length >= 1 },
@@ -7002,26 +7015,26 @@
            PAGE 4 — HEATMAP
         ════════════════════════════════ */
         const ZONES_HM = [
-            { n: 'Borivali', x: 14, y: 7, issues: 8, sev: { low: 8, medium: 0, high: 0, critical: 0 } },
-            { n: 'Dahisar', x: 25, y: 6, issues: 5, sev: { low: 5, medium: 0, high: 0, critical: 0 } },
-            { n: 'Kandivali', x: 33, y: 10, issues: 11, sev: { low: 0, medium: 11, high: 0, critical: 0 } },
-            { n: 'Malad', x: 20, y: 17, issues: 14, sev: { low: 0, medium: 0, high: 14, critical: 0 } },
-            { n: 'Goregaon', x: 32, y: 17, issues: 9, sev: { low: 0, medium: 0, high: 0, critical: 9 } },
-            { n: 'Jogeshwari', x: 22, y: 26, issues: 7, sev: { low: 3, medium: 4, high: 0, critical: 0 } },
-            { n: 'Andheri', x: 37, y: 23, issues: 22, sev: { low: 0, medium: 0, high: 22, critical: 0 } },
-            { n: 'Vile Parle', x: 43, y: 31, issues: 13, sev: { low: 0, medium: 13, high: 0, critical: 0 } },
-            { n: 'Santacruz', x: 46, y: 37, issues: 10, sev: { low: 10, medium: 0, high: 0, critical: 0 } },
-            { n: 'Khar', x: 40, y: 44, issues: 8, sev: { low: 0, medium: 8, high: 0, critical: 0 } },
-            { n: 'Bandra', x: 44, y: 50, issues: 18, sev: { low: 0, medium: 0, high: 0, critical: 18 } },
-            { n: 'Mahim', x: 48, y: 56, issues: 12, sev: { low: 0, medium: 0, high: 12, critical: 0 } },
-            { n: 'Dadar', x: 52, y: 60, issues: 16, sev: { low: 0, medium: 16, high: 0, critical: 0 } },
-            { n: 'Parel', x: 56, y: 65, issues: 14, sev: { low: 14, medium: 0, high: 0, critical: 0 } },
-            { n: 'Worli', x: 49, y: 70, issues: 11, sev: { low: 0, medium: 0, high: 0, critical: 11 } },
-            { n: 'Matunga', x: 58, y: 62, issues: 9, sev: { low: 0, medium: 0, high: 9, critical: 0 } },
-            { n: 'Sion', x: 62, y: 58, issues: 7, sev: { low: 7, medium: 0, high: 0, critical: 0 } },
-            { n: 'Kurla', x: 67, y: 52, issues: 19, sev: { low: 0, medium: 19, high: 0, critical: 0 } },
-            { n: 'Ghatkopar', x: 73, y: 45, issues: 15, sev: { low: 0, medium: 0, high: 15, critical: 0 } },
-            { n: 'Mulund', x: 78, y: 35, issues: 6, sev: { low: 0, medium: 6, high: 0, critical: 0 } },
+            { n: 'Borivali', x: 14, y: 7, issues: 12, sev: { low: 10, medium: 2, high: 0, critical: 0 } },
+            { n: 'Dahisar', x: 25, y: 6, issues: 7, sev: { low: 6, medium: 1, high: 0, critical: 0 } },
+            { n: 'Kandivali', x: 33, y: 10, issues: 15, sev: { low: 2, medium: 10, high: 3, critical: 0 } },
+            { n: 'Malad', x: 20, y: 17, issues: 18, sev: { low: 0, medium: 4, high: 14, critical: 0 } },
+            { n: 'Goregaon', x: 32, y: 17, issues: 11, sev: { low: 0, medium: 0, high: 2, critical: 9 } },
+            { n: 'Jogeshwari', x: 22, y: 26, issues: 9, sev: { low: 3, medium: 5, high: 1, critical: 0 } },
+            { n: 'Andheri', x: 37, y: 23, issues: 25, sev: { low: 1, medium: 5, high: 18, critical: 1 } },
+            { n: 'Vile Parle', x: 43, y: 31, issues: 14, sev: { low: 2, medium: 11, high: 1, critical: 0 } },
+            { n: 'Santacruz', x: 46, y: 37, issues: 12, sev: { low: 9, medium: 2, high: 1, critical: 0 } },
+            { n: 'Khar', x: 40, y: 44, issues: 10, sev: { low: 1, medium: 8, high: 1, critical: 0 } },
+            { n: 'Bandra', x: 44, y: 50, issues: 22, sev: { low: 0, medium: 2, high: 5, critical: 15 } },
+            { n: 'Mahim', x: 48, y: 56, issues: 14, sev: { low: 1, medium: 3, high: 10, critical: 0 } },
+            { n: 'Dadar', x: 52, y: 60, issues: 18, sev: { low: 2, medium: 14, high: 2, critical: 0 } },
+            { n: 'Parel', x: 56, y: 65, issues: 16, sev: { low: 13, medium: 3, high: 0, critical: 0 } },
+            { n: 'Worli', x: 49, y: 70, issues: 14, sev: { low: 0, medium: 1, high: 3, critical: 10 } },
+            { n: 'Matunga', x: 58, y: 62, issues: 11, sev: { low: 1, medium: 2, high: 8, critical: 0 } },
+            { n: 'Sion', x: 62, y: 58, issues: 7, sev: { low: 8, medium: 1, high: 0, critical: 0 } },
+            { n: 'Kurla', x: 67, y: 52, issues: 21, sev: { low: 2, medium: 17, high: 2, critical: 0 } },
+            { n: 'Ghatkopar', x: 73, y: 45, issues: 17, sev: { low: 1, medium: 4, high: 12, critical: 0 } },
+            { n: 'Mulund', x: 78, y: 35, issues: 8, sev: { low: 1, medium: 7, high: 0, critical: 0 } },
         ]
         const SEV_COLORS = { low: '#22c55e', medium: '#f59e0b', high: '#f97316', critical: '#f43f5e' }
         let activeSev = 'all'
@@ -7610,6 +7623,8 @@
                 }
                 // Re-render with fresh data
                 buildStats(); buildUserPanel(); buildMiniMap(); renderFeed(feedFilter)
+                if (activePage === 'analytics') buildAnalytics()
+                if (activePage === 'leaderboard') buildLeaderboard()
             } catch(e) { console.warn('Background sync error:', e.message) }
         })()
         // wire feed nav

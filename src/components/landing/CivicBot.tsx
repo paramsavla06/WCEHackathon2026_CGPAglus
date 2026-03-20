@@ -120,8 +120,8 @@ export default function CivicBot() {
       const d2 = { ...dataRef.current, latitude, longitude, detectedAddress: address, city: cityMatch, location: address }
       
       setReportData(d2); dataRef.current = d2
-      addBot(`Location Detected!\n\n ${address}\n\n Any nearby landmark? (Optional)\n\nExample: 'Near Metro Station'`, ['Skip'], { showPhotoBtn: true })
-      setReportStep(4); stepRef.current = 4
+      addBot('Location Detected!\n\n' + address + '\n\nAny nearby landmark? (Optional)', ['Skip'])
+      setReportStep(5); stepRef.current = 5
       setProgressStep(4)
     } catch {
       addBot('Could not detect location. You can type the location manually.', ['Enter manually'], { showLocBtn: true, showPhotoBtn: true })
@@ -141,8 +141,7 @@ export default function CivicBot() {
       if (step === 0) addBot(`Photo attached! Please select a category to continue.`)
       else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
       else if (step === 2) addBot(`Photo attached! Enter the location or detect it automatically.`, undefined, { showLocBtn: true })
-      else if (step === 3 || step === 4) addBot(`Photo attached! Any nearby landmark?`, ['Skip'])
-      else if (step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
+      else if (step === 3 || step === 4 || step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
     }
     reader.readAsDataURL(file)
     e.target.value = ''
@@ -198,7 +197,7 @@ export default function CivicBot() {
       localStorage.setItem(PREFIX + 'user', JSON.stringify(user))
 
       setProgressStep(0)
-      addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\n ${newReport.id}\n${cat?.label}\n ${data.location}, ${data.city}\n ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`, ['Report another', 'Thank you!'])
+      addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`, ['Report another', 'Thank you!'])
       localStorage.removeItem(PREFIX + 'reports') // Invalidate cache so they fetch fresh from server
     } catch (e: any) {
       addBot(`Failed to submit report. Error: ${e.message}`, ['Try again'])
@@ -243,7 +242,7 @@ export default function CivicBot() {
       } else {
         const d = { ...data, description: text.trim() }; setReportData(d); dataRef.current = d
         setProgressStep(2); setReportStep(2); stepRef.current = 2
-        addBot('Got it! 📍 Now, enter the location or detect it automatically.', undefined, { showLocBtn: true })
+        addBot('Got it! Now, enter the location or detect it automatically.', undefined, { showLocBtn: true })
       }
       return
     }
@@ -257,34 +256,25 @@ export default function CivicBot() {
         addBot(` ${addr}\n\n Any landmark? (Optional)`, ['Skip'], { showPhotoBtn: true })
         return
       }
-      if (text.trim().length < 5) { addBot('Please provide a more specific location.', ['📍 Detect Location'], { showLocBtn: true }); return }
+      if (text.trim().length < 5) { addBot('Please provide a more specific location.', ['Detect Location'], { showLocBtn: true }); return }
       const typedCityMatch = CITIES.find(c => text.toLowerCase().includes(c.toLowerCase())) || 'Mumbai'
       const d = { ...data, location: text.trim(), city: typedCityMatch }; setReportData(d); dataRef.current = d
       setProgressStep(4); setReportStep(4); stepRef.current = 4
-      addBot(`📍 ${text.trim()}\n\n Any nearby landmark? (Optional)`, ['Skip'], { showPhotoBtn: !data.photo })
+      addBot(` ${text.trim()}\n\n Any nearby landmark? (Optional)`, ['Skip'], { showPhotoBtn: !data.photo })
       return
     }
-    if (step === 4) {
-      if (lower.includes('photo') || lower.includes('upload')) { fileRef.current?.click(); return }
-      const landmark = (lower === 'skip' || lower === 'none') ? 'Not specified' : (text.trim() || 'Not specified')
-      const d = { ...data, landmark }; setReportData(d); dataRef.current = d
-      setReportStep(5); stepRef.current = 5
-      if (data.photo) {
-        addBot(`Landmark: ${landmark}\nPhoto attached!\n\nReady to submit.`, ['Submit Report', 'Add more info'])
-      } else {
-        addBot(`Landmark: ${landmark}\n\nAdd a photo? Reports with photos are 3x more likely to get resolved!`, ['Yes, add photo', 'Skip & Submit'])
-      }
-      return
-    }
-    if (step === 5) {
+    if (step === 4 || step === 5) {
       if (lower.includes('photo') || lower.includes('yes, add')) { fileRef.current?.click(); return }
-      if (lower.includes('submit') || lower.includes('send') || lower.includes('skip') || lower.includes('done') || lower.includes('continue')) {
+      if (lower.includes('submit')) {
         submitReport(data.landmark || 'Not specified')
-      } else if (text.trim().length > 5) {
-        submitReport(text.trim())
-      } else {
-        submitReport('Not specified')
+        return
       }
+      const lm = (lower === 'skip' || lower === 'none') ? 'Not specified' : (text.trim() || 'Not specified')
+      const d = { ...data, landmark: lm }; setReportData(d); dataRef.current = d
+      setReportStep(5); stepRef.current = 5
+      if (data.photo) addBot(`Landmark: ${lm}\nPhoto attached!\n\nReady to submit.`, ['Submit Report'])
+      else addBot(`Landmark: ${lm}\n\nAdd a photo? Reports with photos are 3× more likely to be resolved!`, ['Yes, add photo', 'Skip & Submit'])
+      return
     }
   }
 
@@ -304,7 +294,13 @@ export default function CivicBot() {
     const user = getUser()
     if (!user) {
       if (lower.includes('sign in') || lower.includes('login')) {
-        addBot('Please sign in using the Login section to continue.', ['Close'])
+        const loginSection = document.getElementById('login')
+        if (loginSection) {
+            loginSection.scrollIntoView({ behavior: 'smooth' })
+            addBot('Redirecting you to the login section. Please sign in to continue.', ['Close'])
+        } else {
+            addBot('Please visit the login page to sign in to your CivicEye account.', ['Close'])
+        }
       } else {
         addBot('Please log in to use CivicBot and report issues.', ['Sign in'])
       }
@@ -326,20 +322,20 @@ export default function CivicBot() {
     const intent = detectIntent(text)
     switch (intent) {
       case 'greeting':
-        addBot(`Namaste! 🙏 How can I help?`, ['Report an issue', 'My Civic Points', 'Help me']); break
+        addBot(`Namaste! How can I help?`, ['Report an issue', 'My Civic Points', 'Help me']); break
       case 'report':
-        addBot('Let\'s report an issue! 📝\n\nWhat type of issue?\n\n🕳️ Pothole • 💡 Streetlight • 🗑️ Waste\n💧 Water Leak • 🛣️ Road • 🚰 Drainage', ['Pothole', 'Streetlight', 'Waste', 'Water Leak'])
-        setReportStep(0); stepRef.current = 0; break
+        addBot('Let\'s report an issue! What type of issue?\n\nPothole • Streetlight • Waste\nWater Leak • Road • Drainage', ['Pothole', 'Streetlight', 'Waste', 'Water Leak'])
+        setReportStep(0); setProgressStep(1); break
       case 'points': {
         const u = JSON.parse(localStorage.getItem(PREFIX + 'user') || '{}')
         const pts = u.points || 0
-        const badge = pts < 100 ? '🥉 Bronze' : pts < 500 ? '🥈 Silver' : pts < 1000 ? '🥇 Gold' : '💎 Diamond'
-        addBot(`🏆 Civic Points: ${pts}\nBadge: ${badge}\n\nEarn more:\n• Submit report: +10\n• Verified: +25\n• Resolved: +50`, ['Report an issue']); break
+        const badge = pts < 100 ? 'Bronze' : pts < 500 ? 'Silver' : pts < 1000 ? 'Gold' : 'Diamond'
+        addBot(`Civic Points: ${pts}\nBadge: ${badge}\n\nEarn more:\nSubmit report: +10\nVerified: +25\nResolved: +50`, ['Report an issue']); break
       }
       case 'help':
-        addBot('🆘 I can help with:\n\n📝 Report issues\n🏆 Civic points info\n📍 Location detection\n\nWhat would you like?', ['Report an issue', 'My points']); break
+        addBot('I can help with:\n\nReport issues\nCivic points info\nLocation detection\n\nWhat would you like?', ['Report an issue', 'My points']); break
       case 'thanks':
-        addBot("You're welcome! 😊 Anything else?", ['Report an issue']); break
+        addBot("You're welcome! Anything else?", ['Report an issue']); break
       case 'bye':
         addBot('Goodbye! 👋 Every report counts. Every voice matters. 🇮🇳', ['Report an issue']); break
       default:
