@@ -37,6 +37,12 @@
             --ind-green: #138808;
         }
 
+        .emblem-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
         /* ── DARK ── */
         [data-theme="dark"] {
             --ink: #03050b;
@@ -5187,6 +5193,10 @@
         <!-- ══ TOP NAV ══ -->
         <nav class="topnav">
             <div class="tn-logo">
+                <picture>
+                    <source srcset="il.png" media="(prefers-color-scheme: dark)" />
+                    <img src="emblem.png" alt="emblem" class="emblem-img" />
+                </picture>
                 <div class="tn-pip"></div>CivicEye
             </div>
             <div class="tn-nav">

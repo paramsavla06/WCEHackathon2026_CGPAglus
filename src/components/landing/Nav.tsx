@@ -21,7 +21,7 @@ export default function Nav({ theme, onToggleTheme }: NavProps) {
     return (
         <nav className={`ce-nav${scrolled ? ' scrolled' : ''}`} id="ce-nav">
             <div className="ce-logo">
-                <div className="ce-logo-dot" />
+                <img src={theme === 'dark' ? '/il.png' : '/emblem.png'} alt="emblem" style={{ width: 32, height: 32, objectFit: 'contain' }} />
                 CivicEye
             </div>
 
