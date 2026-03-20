@@ -129,12 +129,13 @@ export default function CivicBot() {
     setIsDetecting(false)
   }
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = ev => {
-      const d = { ...dataRef.current, photo: ev.target?.result }
+    reader.onload = async ev => {
+      const photoData = ev.target?.result as string
+      const d: Record<string, any> = { ...dataRef.current, photo: photoData }
       setReportData(d); dataRef.current = d
       
       const step = stepRef.current
@@ -142,6 +143,33 @@ export default function CivicBot() {
       else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
       else if (step === 2) addBot(`Photo attached! Enter the location or detect it automatically.`, undefined, { showLocBtn: true })
       else if (step === 3 || step === 4 || step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
+
+      // Pothole AI refinement
+      if (d.category === 'pothole') {
+        setIsTyping(true)
+        try {
+          const formData = new FormData()
+          formData.append('image', file)
+          const resp = await fetch('http://localhost:4000/api/predict', { method: 'POST', body: formData })
+          if (resp.ok) {
+            const pred = await resp.json()
+            const sev = pred.severity?.toLowerCase() || 'medium'
+            const conf = pred.confidence || 0
+            const updated = {
+              ...dataRef.current,
+              sev,
+              title: `Pothole detected (${sev} severity)`,
+              description: `A ${sev} severity pothole was detected by AI (Confidence: ${conf}%). ` + (dataRef.current.description || '')
+            }
+            setReportData(updated); dataRef.current = updated
+            addBot(`AI System: Pothole detected with ${sev} severity (Confidence: ${conf}%). Details have been autofilled, you can edit them if needed.`, ['Continue'])
+          }
+        } catch (err) {
+          console.error('AI Prediction error:', err)
+        } finally {
+          setIsTyping(false)
+        }
+      }
     }
     reader.readAsDataURL(file)
     e.target.value = ''
@@ -167,13 +195,13 @@ export default function CivicBot() {
     const payload = {
       type: data.category,
       label: cat?.label,
-      title: data.description?.slice(0, 60) || cat?.label || 'Issue',
+      title: data.title || data.description?.slice(0, 60) || cat?.label || 'Issue',
       description: data.description || '',
       location: data.location || '',
       city: data.city || 'Mumbai',
       lat: data.latitude,
       lng: data.longitude,
-      sev: 'medium',
+      sev: data.sev || 'medium',
       imageUrl: data.photo || null,
       landmark: landmark
     }

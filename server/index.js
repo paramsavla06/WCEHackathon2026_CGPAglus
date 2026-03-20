@@ -5,6 +5,9 @@ import bcrypt from 'bcryptjs'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import multer from 'multer'
+import { spawn } from 'child_process'
+import fs from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -102,6 +105,22 @@ app.use((req, _res, next) => {
   next()
 })
 
+// ── Multer (image uploads for severity prediction) ──────────────────────────
+fs.mkdirSync(join(__dirname, 'uploads'), { recursive: true })
+
+const upload = multer({
+  dest: join(__dirname, 'uploads'),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true)
+    else cb(new Error('Only image files are allowed'), false)
+  }
+})
+
+// Python executable — uses 'python' on Windows, 'python3' on Unix
+const PYTHON = process.platform === 'win32' ? 'python' : 'python3'
+const INFERENCE_SCRIPT = join(__dirname, '..', 'model', 'inference (1).py')
+
 // ── Auth middleware (citizen) ─────────────────────────────────────────────────
 function auth(req, res, next) {
   const header = req.headers.authorization
@@ -186,6 +205,40 @@ function relativeTime(isoStr) {
   if (diff < 3600) return Math.round(diff / 60) + 'm ago'
   if (diff < 86400) return Math.round(diff / 3600) + 'h ago'
   return Math.round(diff / 86400) + ' days ago'
+}
+
+// ── Inference helper (spawns inference.py as child process) ──────────────────
+function runInference(imagePath) {
+  return new Promise((resolve, reject) => {
+    const py = spawn(PYTHON, [INFERENCE_SCRIPT, imagePath])
+
+    let stdout = ''
+    let stderr = ''
+
+    py.stdout.on('data', (chunk) => { stdout += chunk.toString() })
+    py.stderr.on('data', (chunk) => { stderr += chunk.toString() })
+
+    py.on('close', (code) => {
+      // Clean up uploaded temp file
+      fs.unlink(imagePath, () => {})
+
+      if (!stdout.trim()) {
+        return reject(new Error(stderr.trim() || `Inference process exited with code ${code}`))
+      }
+
+      try {
+        const result = JSON.parse(stdout.trim())
+        if (result.error) return reject(new Error(result.error))
+        resolve(result)
+      } catch {
+        reject(new Error(`Failed to parse inference output: ${stdout}`))
+      }
+    })
+
+    py.on('error', (err) => {
+      reject(new Error(`Failed to start inference process: ${err.message}`))
+    })
+  })
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -521,8 +574,30 @@ app.get('/api/leaderboard', auth, (req, res) => {
   res.json(board)
 })
 
+// ── Severity Prediction ───────────────────────────────────────────────────────
+app.post('/api/predict', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image part in the request' })
+  }
+
+  const imagePath = req.file.path
+
+  try {
+    const result = await runInference(imagePath)
+    res.json(result)
+  } catch (err) {
+    // Ensure temp file is removed even on error
+    fs.unlink(imagePath, () => {})
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
+app.get('/api/health', (_req, res) => res.json({ 
+  status: 'ok', 
+  time: new Date().toISOString(),
+  model: fs.existsSync(join(__dirname, '..', 'model', 'severity_model_v3_67pct.pth'))
+}))
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: `Route ${req.method} ${req.path} not found` }))

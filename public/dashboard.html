@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8" />
@@ -2684,6 +2684,64 @@
             color: var(--txt2)
         }
 
+        .ai-tag {
+            font-size: 8px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: #fff;
+            padding: 2px 7px;
+            border-radius: 100px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 700;
+            letter-spacing: .03em;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+            animation: aiTagPulse 2s infinite ease-in-out;
+            text-transform: none;
+        }
+
+        @keyframes aiTagPulse {
+            0%, 100% { opacity: 0.9; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .rp-ai-loading {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: rpAiIn .4s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rpAiIn { from { opacity: 0; transform: translateX(-50%) translateY(5px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        .rp-btn-spin {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            animation: rpSpinner 0.8s linear infinite;
+        }
+
+        @keyframes rpSpinner { to { transform: rotate(360deg); } }
+
         .rp-input {
             width: 100%;
             padding: 11px 14px;
@@ -4902,6 +4960,100 @@
         }
     </style>
 
+    <!-- ═══ MOBILE RESPONSIVE OVERRIDES ═══ -->
+    <style>
+    /* Restore real cursor on touch devices */
+    @media (hover: none) {
+        body { cursor: auto !important; }
+        #cur, #curR { display: none !important; }
+        button, a, input, select, textarea { cursor: pointer !important; }
+    }
+
+    @media (max-width: 768px) {
+        /* ── Top Nav ── */
+        .topnav { padding: 0 14px; height: 52px; }
+        .tn-logo span { display: none; }
+        .tn-nav { gap: 1px; }
+        .tn-tab { padding: 4px 9px; font-size: 10px; }
+        .tn-new span:not(:first-child) { display: none; }
+        .tn-new { padding: 5px 10px; font-size: 11px; }
+        .tn-ib { width: 28px; height: 28px; }
+
+        /* ── Gov accessibility bar ── */
+        .db-govbar { flex-wrap: nowrap; padding: 4px 12px; overflow-x: auto; font-size: 9.5px; }
+        .db-gb-right { display: none; }
+
+        /* ── Dashboard page layout ── */
+        .db-shell { flex-direction: column; height: auto; min-height: calc(100vh - 52px); }
+        .db-left  { width: 100% !important; max-width: 100% !important; flex-shrink: 0; height: auto; border-right: none !important; border-bottom: .5px solid var(--b); }
+        .db-right { width: 100% !important; max-width: 100% !important; border-left: none !important; }
+        .db-feed-wrap { min-height: auto; }
+
+        /* Page 1 — Dashboard two-column → single */
+        .db-col2 { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+        .feed-col { width: 100% !important; overflow-y: visible !important; height: auto !important; }
+        .right-col { width: 100% !important; height: auto !important; overflow-y: visible !important; border-left: none !important; border-top: .5px solid var(--b); }
+
+        /* Stats strip */
+        .stats-strip { flex-wrap: wrap; }
+        .stat-cell { flex: 1 1 50%; min-width: 0; border-right: .5px solid var(--b) !important; }
+        .stat-cell:nth-child(2n) { border-right: none !important; }
+
+        /* Feed cards */
+        .feed-card { margin: 0 12px 12px; }
+        .fc-img { height: 140px; }
+
+        /* Report Wizard */
+        .rp-shell { padding: 0; }
+        .rp-steps-row { padding: 12px 16px; }
+        .rp-panel { padding: 18px 16px; }
+        .rp-bottom { padding: 12px 16px; }
+        .rp-type-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px; }
+        .rp-type-btn { padding: 10px 4px; }
+        .rp-type-lbl { font-size: 8px; }
+        .sev-row { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+        .rp-map-wrap, #rpLeaflet { height: 220px !important; }
+        .rp-map { height: 220px !important; }
+        .rp-btn-next, .rp-btn-ghost { padding: 10px 18px; font-size: 13px; }
+
+        /* Analytics */
+        .an-grid { grid-template-columns: 1fr !important; padding: 16px !important; gap: 16px !important; }
+
+        /* Heatmap */
+        .hm-col { flex-direction: column !important; height: auto !important; }
+        .hm-right { width: 100% !important; height: auto !important; border-top: .5px solid var(--b); border-left: none !important; }
+        #hmMap { height: 260px !important; min-height: 260px !important; }
+        .hm-grid { display: none !important; }
+
+        /* User profile panel */
+        .psec { padding: 12px 16px; }
+
+        /* CivicBot FAB — don't overlap nav */
+        #cbFab { bottom: 16px !important; right: 16px !important; width: 48px !important; height: 48px !important; }
+
+        /* Feedback tab */
+        .db-feedback-tab { display: none; }
+        .db-scroll-top { right: 12px; }
+
+        /* Lang dropdown */
+        .db-lang-dd { right: -30px; min-width: 220px; }
+
+        /* Gov-bar accessibility buttons */
+        .db-fz-grp, .db-cs-grp { display: none; }
+    }
+
+    @media (max-width: 480px) {
+        .tn-tab { padding: 4px 7px; font-size: 9.5px; }
+        .topnav { padding: 0 10px; }
+        .stat-cell { flex: 1 1 100%; border-right: none !important; }
+        .rp-type-grid { grid-template-columns: repeat(4, 1fr) !important; }
+        .rp-map-wrap, #rpLeaflet { height: 180px !important; }
+        .rp-map { height: 180px !important; }
+        .feed-card { margin: 0 8px 10px; }
+        .an-grid { padding: 10px !important; gap: 10px !important; }
+    }
+    </style>
+
 </head>
 
 <body>
@@ -5641,10 +5793,10 @@
         closeBtn.onclick = () => { win.style.display='none'; fab.style.display='flex' }
         sendBtn.onclick = () => handleSend()
         inputEl.onkeydown = e => { if(e.key==='Enter') handleSend() }
-        fileInp.onchange = e => {
+        fileInp.onchange = async e => {
             const f = e.target.files?.[0]; if(!f) return
             const r = new FileReader()
-            r.onload = ev => { 
+            r.onload = async ev => { 
                 data.photo = ev.target.result; 
                 if (step === 0) addBot(`Photo attached! Please select a category to continue.`)
                 else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
@@ -5652,6 +5804,29 @@
                 else if (step === 3 || step === 4) addBot(`Photo attached! Any nearby landmark?`, ['Skip'])
                 else if (step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
                 else addBot(T().photoAttached)
+
+                // Pothole AI refinement
+                if (data.category === 'pothole') {
+                    showTyping()
+                    try {
+                        const formData = new FormData()
+                        formData.append('image', f)
+                        const resp = await fetch('http://localhost:4000/api/predict', { method: 'POST', body: formData })
+                        if (resp.ok) {
+                            const pred = await resp.json()
+                            const sev = pred.severity?.toLowerCase() || 'medium'
+                            const conf = pred.confidence || 0
+                            data.sev = sev
+                            data.title = `Pothole detected (${sev} severity)`
+                            data.description = `A ${sev} severity pothole was detected by AI (Confidence: ${conf}%). ` + (data.description || '')
+                            addBot(`🤖 AI System: Pothole detected with ${sev} severity (Confidence: ${conf}%). Details have been autofilled, you can edit them if needed.`, ['Continue'])
+                        }
+                    } catch (err) {
+                        console.error('AI Prediction error:', err)
+                    } finally {
+                        hideTyping()
+                    }
+                }
             }
             r.readAsDataURL(f)
             e.target.value = ''
@@ -5751,18 +5926,17 @@
                 step=-1; data={}; return
             }
 
-            const cat = ISSUE_CATEGORIES.find(c=>c.id===data.category)
             const payload = {
                 type: data.category,
                 label: cat?.label,
-                title: data.description?.slice(0,60)||cat?.label||'Issue',
-                description: data.description||'',
-                location: data.location||'',
-                city: data.city||'Mumbai',
+                title: data.title || data.description?.slice(0,60) || cat?.label || 'Issue',
+                description: data.description || '',
+                location: data.location || '',
+                city: data.city || 'Mumbai',
                 lat: data.latitude,
                 lng: data.longitude,
-                sev: 'medium',
-                imageUrl: data.photo||null,
+                sev: data.sev || 'medium',
+                imageUrl: data.photo || null,
                 landmark: landmark
             }
 
@@ -5990,7 +6164,7 @@
         function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2600) }
 
         /* ════ THEME ════ */
-        let dark = true
+        let dark = false
         document.getElementById('modeBtn').addEventListener('click', () => {
             dark = !dark
             document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
@@ -6269,7 +6443,7 @@
         /* ════════════════════════════════
            PAGE 2 — REPORT WIZARD
         ════════════════════════════════ */
-        let rpStep = 1, rpData = { lat: null, lng: null, location: '', imgUrl: null, type: '', title: '', desc: '', sev: 'medium' }
+        let rpStep = 1, rpData = { lat: null, lng: null, location: '', imgUrl: null, type: '', title: '', desc: '', sev: 'medium', isAiProcessing: false, aiResult: null }
         const ISSUE_TYPES = [
             { type: 'pothole', label: 'Pothole', col: '#f59e0b', bg: 'rgba(245,158,11,.1)', ico: TICO.pothole },
             { type: 'light', label: 'Streetlight', col: '#3d7fff', bg: 'rgba(61,127,255,.1)', ico: TICO.light },
@@ -6282,7 +6456,7 @@
         ]
 
         function buildReport() {
-            rpStep = 1; rpData = { lat: null, lng: null, location: '', imgUrl: null, type: '', title: '', desc: '', sev: 'medium' }
+            rpStep = 1; rpData = { lat: null, lng: null, location: '', imgUrl: null, type: '', title: '', desc: '', sev: 'medium', isAiProcessing: false, aiResult: null }
             renderRpStep()
         }
 
@@ -6443,7 +6617,7 @@
   <div class="rp-sub">A clear photo helps authorities understand and verify the issue faster. You can skip this step.</div>
   <div class="rp-upload" id="rpUpload">
     ${rpData.imgUrl
-                    ? `<div class="rp-img-preview" style="width:100%"><img src="${rpData.imgUrl}"/><button class="rp-img-clear" id="rpClearImg">✕ Remove</button></div>`
+                    ? `<div class="rp-img-preview" style="width:100%"><img src="${rpData.imgUrl}"/><button class="rp-img-clear" id="rpClearImg">✕ Remove</button>${rpData.isAiProcessing ? '<div class="rp-ai-loading">🔮 AI Analyzing Severity...</div>' : ''}</div>`
                     : `<div class="rp-upload-inner"><div class="rp-upload-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--saffron)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="rp-upload-text">Tap to upload a photo</div><div class="rp-upload-sub">JPG, PNG up to 10MB</div></div>`}
     <input type="file" id="rpFile" accept="image/*" style="display:none"/>
   </div>
@@ -6453,10 +6627,46 @@
         function mountRpStep2() {
             const upload = document.getElementById('rpUpload'), file = document.getElementById('rpFile')
             upload?.addEventListener('click', e => { if (!e.target.closest('.rp-img-clear')) file?.click() })
-            file?.addEventListener('change', e => {
+            file?.addEventListener('change', async e => {
                 const f = e.target.files?.[0]; if (!f) return
                 const reader = new FileReader()
-                reader.onload = ev => { rpData.imgUrl = ev.target.result; renderRpStep() }
+                reader.onload = async ev => { 
+                    rpData.imgUrl = ev.target.result; 
+                    rpData.isAiProcessing = true;
+                    renderRpStep() 
+                    
+                    // Run AI prediction immediately after photo upload
+                    try {
+                        const formData = new FormData()
+                        formData.append('image', f)
+                        const resp = await fetch(CE_API + '/api/predict', { method: 'POST', body: formData })
+                        if (resp.ok) {
+                            const pred = await resp.json()
+                            const sev = pred.severity?.toLowerCase() || 'medium'
+                            const conf = pred.confidence || 0
+                            
+                            // Prepare AI data
+                            rpData.aiResult = {
+                                type: 'pothole',
+                                sev: sev,
+                                title: `Pothole detected (${sev} severity)`,
+                                desc: `A ${sev} severity pothole was detected by AI (Confidence: ${conf}%).`,
+                                isAi: true
+                            }
+                            
+                            // Suggest values
+                            rpData.type = 'pothole'
+                            rpData.title = rpData.aiResult.title
+                            rpData.desc = rpData.aiResult.desc
+                            rpData.sev = rpData.aiResult.sev
+                        }
+                    } catch (err) {
+                        console.error('AI Prediction error in Wizard:', err)
+                    } finally {
+                        rpData.isAiProcessing = false
+                        if (rpStep >= 2) renderRpStep() // Refresh if they are on Step 2 or 3
+                    }
+                }
                 reader.readAsDataURL(f)
             })
             document.getElementById('rpClearImg')?.addEventListener('click', e => { e.stopPropagation(); rpData.imgUrl = null; renderRpStep() })
@@ -6468,20 +6678,20 @@
             const sevs = [['low', 'Low', '#22c55e'], ['medium', 'Medium', '#f59e0b'], ['high', 'High', '#f97316'], ['critical', 'Critical', '#f43f5e']]
             return `<div class="rp-heading">Describe the issue</div>
   <div class="rp-sub">Help authorities route this to the right department quickly.</div>
-  <label class="rp-label">Issue Type</label>
+  <label class="rp-label">Issue Type ${rpData.aiResult?.isAi && rpData.type === 'pothole' ? '<span class="ai-tag">AI Suggested</span>' : ''}</label>
   <div class="rp-type-grid">${tg}</div>
-  <label class="rp-label">Title <span style="color:var(--saffron)">*</span></label>
+  <label class="rp-label">Title <span style="color:var(--saffron)">*</span> ${rpData.aiResult?.isAi && rpData.title === rpData.aiResult.title ? '<span class="ai-tag">AI Generated</span>' : ''}</label>
   <div style="position:relative;display:flex;">
     <input type="text" class="rp-input" id="rpTitle" placeholder="e.g. Deep pothole blocking lane" maxlength="80" value="${rpData.title}" style="padding-right:50px"/>
     <button id="rpVoiceTitle" class="rp-voice-btn" aria-label="Voice input" title="Voice input (multi-language)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"></path><path d="M19 10v2a7 7 0 01-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></button>
   </div>
-  <label class="rp-label">Description <span style="color:var(--saffron)">*</span></label>
+  <label class="rp-label">Description <span style="color:var(--saffron)">*</span> ${rpData.aiResult?.isAi && rpData.desc === rpData.aiResult.desc ? '<span class="ai-tag">AI Generated</span>' : ''}</label>
   <div style="position:relative;">
     <textarea class="rp-input rp-textarea" id="rpDesc" placeholder="Describe how long it's been there, how serious it is..." maxlength="400" style="padding-right:50px">${rpData.desc}</textarea>
     <button id="rpVoiceDesc" class="rp-voice-btn" style="top:22px" aria-label="Voice input" title="Voice input (multi-language)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"></path><path d="M19 10v2a7 7 0 01-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></button>
   </div>
   <div class="rp-charcount" id="rpCC">${rpData.desc.length}/400</div>
-  <label class="rp-label">Severity</label>
+  <label class="rp-label">Severity ${rpData.aiResult?.isAi && rpData.sev === rpData.aiResult.sev ? '<span class="ai-tag">AI Detected</span>' : ''}</label>
   <div class="sev-row">${sevs.map(([v, l, c]) => `<button class="sev-btn${rpData.sev === v ? ' active' : ''}" data-sv="${v}" style="--sv-col:${c}">${l}</button>`).join('')}</div>`
         }
 
@@ -6549,7 +6759,24 @@
 
         async function rpNext() {
             if (rpStep === 1) { if (!rpData.location) { rpData.location = 'Mumbai (approximate)'; rpData.lat = 19.076; rpData.lng = 72.877 }; rpStep = 2; renderRpStep() }
-            else if (rpStep === 2) { rpStep = 3; renderRpStep() }
+            else if (rpStep === 2) { 
+                // Wait for AI if it's still working
+                if (rpData.isAiProcessing) {
+                    const btn = document.getElementById('rpNext')
+                    if (btn) {
+                        btn.disabled = true
+                        btn.innerHTML = `<span class="rp-btn-spin"></span> Analysing...`
+                    }
+                    const check = setInterval(() => {
+                        if (!rpData.isAiProcessing) {
+                            clearInterval(check)
+                            rpStep = 3; renderRpStep()
+                        }
+                    }, 200)
+                    return
+                }
+                rpStep = 3; renderRpStep() 
+            }
             else if (rpStep === 3) {
                 if (!rpData.title.trim()) { toast('Please add a title'); return }
                 if (!rpData.type) { toast('Please select an issue type'); return }

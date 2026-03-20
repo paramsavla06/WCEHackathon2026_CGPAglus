@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
@@ -9,10 +9,10 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
       --grn:#138808;--grn-bg:rgba(19,136,8,.12);
-      --ink:#03050b;--surf:#0b1220;--surf2:#101828;
-      --b:rgba(255,180,60,.06);--b2:rgba(255,180,60,.18);
-      --txt:#ede4d3;--txt2:#8a96b0;--txt3:#4a5e78;
-      --red:#f43f5e;--saffron:#ff9933;
+      --ink:#faf4ea;--surf:#fff;--surf2:#fdf5e8;
+      --b:rgba(120,70,10,.08);--b2:rgba(120,70,10,.16);
+      --txt:#0a0a0a;--txt2:#4a4a4a;--txt3:#757575;
+      --red:#f43f5e;--saffron:#cf7500;
     }
     html,body{height:100%;font-family:'Sora',sans-serif;background:var(--ink);color:var(--txt);overflow-x:hidden;cursor:none}
     #cur{position:fixed;width:8px;height:8px;border-radius:50%;background:var(--grn);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s}
@@ -95,6 +95,22 @@
 
     /* hover effects */
     button:hover #cur,a:hover #cur{width:4px;height:4px}
+
+    /* ─── Mobile ─── */
+    @media (hover: none) {
+        body { cursor: auto !important; }
+        #cur, #curR { display: none !important; }
+        button, a, input, select { cursor: pointer !important; }
+    }
+    @media (max-width: 480px) {
+        .page { padding: 16px; align-items: stretch; }
+        .card { max-width: 100%; border-radius: 16px; }
+        .ch { padding: 22px 18px 16px; }
+        .cb { padding: 18px 18px 22px; }
+        .tabs { padding: 12px 14px 0; }
+        .btn { padding: 12px; }
+        .row2 { grid-template-columns: 1fr; gap: 0; }
+    }
   </style>
 </head>
 <body>

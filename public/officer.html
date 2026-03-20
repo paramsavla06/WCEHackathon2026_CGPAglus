@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8" />
@@ -3959,6 +3959,81 @@
         }
     </style>
 
+    <!-- ═══ MOBILE RESPONSIVE OVERRIDES — OFFICER PORTAL ═══ -->
+    <style>
+    @media (hover: none) {
+        body { cursor: auto !important; }
+        #cur, #curR { display: none !important; }
+        button, a, input, select, textarea { cursor: pointer !important; }
+    }
+
+    @media (max-width: 768px) {
+        /* ── Top Nav ── */
+        .topnav { padding: 0 14px; height: 52px; }
+        .tn-logo span { display: none; }
+        .tn-nav { gap: 1px; }
+        .tn-tab { padding: 4px 8px; font-size: 9.5px; }
+        .tn-right { gap: 5px; }
+        .tn-ib { width: 28px; height: 28px; }
+        .tn-new { padding: 5px 10px; font-size: 11px; }
+        .tn-new span:not(:first-child) { display: none; }
+
+        /* ── Gov bar ── */
+        .db-govbar { padding: 4px 12px; font-size: 9px; overflow-x: auto; flex-wrap: nowrap; }
+        .db-gb-right { display: none; }
+        .db-fz-grp, .db-cs-grp { display: none; }
+
+        /* ── Main layout ── */
+        .db-col2 { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+        .feed-col { width: 100% !important; overflow-y: visible !important; height: auto !important; }
+        .right-col { width: 100% !important; height: auto !important; overflow-y: visible !important; border-left: none !important; border-top: .5px solid var(--b); padding-top: 16px; }
+
+        /* ── Stats strip ── */
+        .stats-strip { flex-wrap: wrap; }
+        .stat-cell { flex: 1 1 50% !important; min-width: 120px; border-right: .5px solid var(--b) !important; }
+        .stat-cell:nth-child(2n) { border-right: none !important; }
+
+        /* ── Report table ── */
+        .rep-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .rep-table { min-width: 640px; }
+
+        /* ── Analytics ── */
+        .an-grid { grid-template-columns: 1fr !important; padding: 16px !important; gap: 16px !important; }
+
+        /* ── Heatmap ── */
+        .hm-col { flex-direction: column !important; height: auto !important; }
+        .hm-right { width: 100% !important; height: auto !important; border-left: none !important; border-top: .5px solid var(--b); }
+        #hmMap { height: 260px !important; }
+        .hm-grid { display: none !important; }
+
+        /* ── Team ── */
+        .team-page-grid { grid-template-columns: 1fr !important; }
+
+        /* ── Lock-out panel ── */
+        .lock-card { padding: 28px 20px; }
+
+        /* ── Report detail modal ── */
+        .rep-detail-modal { padding: 0 !important; }
+        .rdm-inner { padding: 20px 16px; border-radius: 0; max-width: 100vw; max-height: 100dvh; }
+
+        /* ── Feedback tab ── */
+        .db-feedback-tab { display: none; }
+        .db-scroll-top { right: 12px; }
+
+        /* ── Lang dropdown ── */
+        .db-lang-dd { right: -10px; min-width: 220px; }
+    }
+
+    @media (max-width: 480px) {
+        .topnav { padding: 0 10px; }
+        .tn-tab { padding: 3px 7px; font-size: 9px; }
+        .stat-cell { flex: 1 1 100% !important; border-right: none !important; border-bottom: .5px solid var(--b) !important; }
+        .stat-cell:last-child { border-bottom: none !important; }
+        .an-grid { padding: 10px !important; gap: 10px !important; }
+        #hmMap { height: 200px !important; }
+    }
+    </style>
+
 </head>
 
 <body>
@@ -4697,7 +4772,7 @@
         document.addEventListener('DOMContentLoaded', () => { setTimeout(() => document.querySelectorAll('.feed-col,.right-col,.an-grid,.rep-table-scroll,.team-page-grid,.hm-col,.hm-right').forEach(el => el.addEventListener('scroll', rev, { passive: true })), 100) })
 
         /* ════ THEME ════ */
-        let dark = true
+        let dark = false
         document.getElementById('modeBtn').addEventListener('click', () => {
             dark = !dark; document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
             document.getElementById('modeIco').innerHTML = dark

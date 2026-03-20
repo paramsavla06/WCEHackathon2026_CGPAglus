@@ -18,7 +18,7 @@ import {
 } from '../../lib/animations.ts'
 
 export default function LandingPage() {
-    const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+    const [theme, setTheme] = useState<'dark' | 'light'>('light')
     const [toast, setToast] = useState('')
     const [toastVisible, setToastVisible] = useState(false)
 
