@@ -5466,26 +5466,89 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         /* ════════════════════════════════
-           STORAGE
+           API CONFIG + STORAGE
         ════════════════════════════════ */
-        const GR = () => { try { return JSON.parse(localStorage.getItem('ce_reports') || '[]') } catch { return [] } }
-        const GU = () => { try { return JSON.parse(localStorage.getItem('ce_user') || 'null') } catch { return null } }
-        const GV = () => { try { return JSON.parse(localStorage.getItem('ce_votes') || '{}') } catch { return {} } }
-        const SV = v => localStorage.setItem('ce_votes', JSON.stringify(v))
-        const HV = id => !!GV()[id]
-        const TV = id => { const v = GV(); v[id] = !v[id]; SV(v); return v[id] }
-        const BV = (id, d) => { const r = GR(); const i = r.findIndex(x => x.id === id); if (i !== -1) { r[i].votes = (r[i].votes || 0) + d; localStorage.setItem('ce_reports', JSON.stringify(r)) } }
+        const CE_API = 'http://localhost:4000'
 
-        function seed() {
-            // Only seed sample reports if none exist — never overwrite the logged-in user
-            if (GR().length > 0) return
-            const n = Date.now()
-            localStorage.setItem('ce_reports', JSON.stringify([
-                { id: 'CE-2844', type: 'pothole', label: 'Pothole', title: 'Deep pothole near MG Road', description: 'Large pothole causing serious vehicle damage, especially two-wheelers. Present over 2 weeks.', location: 'MG Road, Dadar', city: 'Mumbai', sev: 'high', severity: 'high', status: 'In Progress', votes: 34, bg: 'rgba(245,158,11,.1)', col: '#f59e0b', imgGrad: 'linear-gradient(135deg,#1a1200,#3a2800)', submittedAt: new Date(n - 3 * 864e5).toISOString(), updatedAt: new Date(n - 864e5).toISOString(), currentStep: 3 },
-                { id: 'CE-2831', type: 'light', label: 'Streetlight', title: 'Streetlight out on Hill Road', description: 'Three consecutive streetlights not working since last week. Very dark at night.', location: 'Hill Road, Bandra West', city: 'Mumbai', sev: 'medium', severity: 'medium', status: 'Assigned', votes: 18, bg: 'rgba(61,127,255,.1)', col: '#3d7fff', imgGrad: 'linear-gradient(135deg,#000a1a,#002040)', submittedAt: new Date(n - 7 * 864e5).toISOString(), updatedAt: new Date(n - 2 * 864e5).toISOString(), currentStep: 2 },
-                { id: 'CE-2819', type: 'waste', label: 'Waste Overflow', title: 'Overflowing bins JVLR market', description: 'Garbage bins not cleared for 4 days. Health hazard and foul odour.', location: 'JVLR Market, Andheri East', city: 'Mumbai', sev: 'high', severity: 'high', status: 'Resolved', votes: 52, bg: 'rgba(52,211,153,.1)', col: '#34d399', imgGrad: 'linear-gradient(135deg,#001a0a,#003020)', submittedAt: new Date(n - 14 * 864e5).toISOString(), updatedAt: new Date(n - 4 * 864e5).toISOString(), currentStep: 4 },
-            ]))
+        // Token helpers
+        const getToken = () => localStorage.getItem('ce_token') || null
+        const authH = () => ({ 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' })
+
+        // Cached localStorage reads (fast, used for synchronous renders)
+        const GR = () => { try { return JSON.parse(localStorage.getItem('ce_reports') || '[]') } catch { return [] } }
+        const GU = () => {
+            try {
+                const u = JSON.parse(localStorage.getItem('ce_user') || 'null')
+                if (u) {
+                    const r = GR()
+                    const res = r.filter(x => x.status === 'Resolved').length
+                    const upv = r.reduce((a, x) => a + (x.votes || 0), 0)
+                    u.points = (r.length * 10) + (res * 20) + (upv * 2)
+                }
+                return u
+            } catch { return null }
         }
+        const GV = () => { try { return JSON.parse(localStorage.getItem('ce_votes') || '{}') } catch { return {} } }
+        const HV = id => !!GV()[id]
+
+        // API helpers
+        async function apiCall(method, path, body) {
+            const opts = { method, headers: authH() }
+            if (body) opts.body = JSON.stringify(body)
+            const res = await fetch(CE_API + path, opts)
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Request failed')
+            return data
+        }
+
+        // Sync reports from backend → localStorage
+        async function syncReports() {
+            try {
+                const reports = await apiCall('GET', '/api/reports')
+                localStorage.setItem('ce_reports', JSON.stringify(reports))
+                return reports
+            } catch (e) {
+                console.warn('syncReports failed, using cache:', e.message)
+                return GR()
+            }
+        }
+
+        // Sync votes from backend → localStorage
+        async function syncVotes() {
+            try {
+                const ids = await apiCall('GET', '/api/votes')
+                const map = {}
+                ids.forEach(id => { map[id] = true })
+                localStorage.setItem('ce_votes', JSON.stringify(map))
+                return map
+            } catch (e) {
+                console.warn('syncVotes failed, using cache:', e.message)
+                return GV()
+            }
+        }
+
+        // Toggle vote via API then update local cache
+        async function TV(id) {
+            try {
+                const result = await apiCall('POST', '/api/votes/' + id)
+                const v = GV()
+                if (result.voted) v[id] = true; else delete v[id]
+                localStorage.setItem('ce_votes', JSON.stringify(v))
+                // update votes count in report cache
+                const r = GR()
+                const idx = r.findIndex(x => x.id === id)
+                if (idx !== -1) { r[idx].votes = (r[idx].votes || 0) + (result.voted ? 1 : -1); localStorage.setItem('ce_reports', JSON.stringify(r)) }
+                return result.voted
+            } catch (e) {
+                console.warn('toggleVote failed:', e.message)
+                return HV(id)
+            }
+        }
+
+        // BV no longer needed (votes are server-side), keep as no-op for safety
+        const BV = () => {}
+
+        function seed() { /* no-op — data now comes from backend */ }
 
         const SM = {
             'Submitted': { col: '#7a8699', bg: 'rgba(122,134,153,.12)' },
@@ -5576,12 +5639,14 @@
             const res = R.filter(r => r.status === 'Resolved').length
             const inp = R.filter(r => r.status === 'In Progress' || r.status === 'Assigned').length
             const tv = R.reduce((a, r) => a + (r.votes || 0), 0)
+            const lbData = typeof getLBData === 'function' ? getLBData() : [];
+            const myRankValue = lbData.length > 0 ? (lbData.findIndex(d => d.you) + 1) : Math.max(1, 48 - R.length);
             const cells = [
                 { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`, col: 'var(--saffron)', bg: 'var(--safg)', v: R.length, l: 'Reports Filed', d: '+' + Math.min(R.length, 3) + ' this week', dt: 'up' },
                 { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`, col: 'var(--grn)', bg: 'var(--grn-bg)', v: res, l: 'Resolved', d: Math.round(res / Math.max(R.length, 1) * 100) + '% rate', dt: 'up' },
                 { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>`, col: 'var(--amber)', bg: 'var(--amber-bg)', v: inp, l: 'In Progress', d: 'Being actioned', dt: 'neu' },
                 { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>`, col: 'var(--blue)', bg: 'var(--blue-bg)', v: tv, l: 'Votes Received', d: '+' + tv + ' total', dt: 'up' },
-                { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`, col: 'var(--purple)', bg: 'rgba(167,139,250,.1)', v: U.points, l: 'Civic Points', d: 'Rank #' + Math.max(1, 48 - R.length), dt: 'up' },
+                { ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`, col: 'var(--purple)', bg: 'rgba(167,139,250,.1)', v: U.points, l: 'Civic Points', d: 'Rank #' + myRankValue, dt: 'up' },
             ]
             document.getElementById('statsStrip').innerHTML = cells.map(c => `
     <div class="sc"><div class="sc-ico" style="background:${c.bg};color:${c.col}">${c.ico}</div>
@@ -6061,17 +6126,29 @@
             bindVoice('rpVoiceDesc', 'rpDesc');
         }
 
-        function rpNext() {
+        async function rpNext() {
             if (rpStep === 1) { if (!rpData.location) { rpData.location = 'Mumbai (approximate)'; rpData.lat = 19.076; rpData.lng = 72.877 }; rpStep = 2; renderRpStep() }
             else if (rpStep === 2) { rpStep = 3; renderRpStep() }
             else if (rpStep === 3) {
                 if (!rpData.title.trim()) { toast('Please add a title'); return }
                 if (!rpData.type) { toast('Please select an issue type'); return }
-                // save
                 const it = ISSUE_TYPES.find(x => x.type === rpData.type) || ISSUE_TYPES[0]
-                const id = 'CE-' + (2870 + GR().length + Math.floor(Math.random() * 10))
-                const report = { id, type: rpData.type, label: it.label, title: rpData.title.trim(), description: rpData.desc.trim(), location: rpData.location, city: 'Mumbai', lat: rpData.lat, lng: rpData.lng, sev: rpData.sev, severity: rpData.sev, status: 'Submitted', votes: 0, imageUrl: rpData.imgUrl, imgUrl: rpData.imgUrl, bg: it.bg, col: it.col, imgGrad: 'linear-gradient(135deg,#0a0a0a,#1a1a1a)', submittedAt: new Date().toISOString(), updatedAt: new Date().toISOString(), currentStep: 0 }
-                const existing = GR(); existing.unshift(report); localStorage.setItem('ce_reports', JSON.stringify(existing))
+                const reportPayload = { type: rpData.type, label: it.label, title: rpData.title.trim(), description: rpData.desc.trim(), location: rpData.location, city: 'Mumbai', lat: rpData.lat, lng: rpData.lng, sev: rpData.sev, imageUrl: rpData.imgUrl, bg: it.bg, col: it.col, imgGrad: 'linear-gradient(135deg,#0a0a0a,#1a1a1a)' }
+                // Disable the next button during submission
+                document.getElementById('rpNext').disabled = true
+                document.getElementById('rpNext').textContent = 'Submitting…'
+                let id = 'CE-' + (2870 + GR().length + Math.floor(Math.random() * 10))
+                try {
+                    const saved = await apiCall('POST', '/api/reports', reportPayload)
+                    id = saved.id
+                    // update local cache
+                    const existing = GR(); existing.unshift(saved); localStorage.setItem('ce_reports', JSON.stringify(existing))
+                } catch (e) {
+                    toast('Failed to save report: ' + e.message)
+                    document.getElementById('rpNext').disabled = false
+                    document.getElementById('rpNext').textContent = 'Submit Report →'
+                    return
+                }
                 // success screen
                 document.getElementById('rpWizard').innerHTML = `
     <div class="rp-success">
@@ -6646,12 +6723,19 @@
             if (myIdx !== -1) { data[myIdx].pts = U.points; data[myIdx].reports = Math.max(R.length, data[myIdx].reports); data[myIdx].resolved = Math.max(R.filter(r => r.status === 'Resolved').length, data[myIdx].resolved); data[myIdx].name = U.name; data[myIdx].avatar = U.avatar || 'AS'; data[myIdx].city = U.city }
             return data.sort((a, b) => b.pts - a.pts)
         }
-        function buildLeaderboard() {
-            const data = getLBData()
+        async function buildLeaderboard() {
+            let data
+            try {
+                data = await apiCall('GET', '/api/leaderboard')
+            } catch(e) {
+                // fall back to local mock data if API is down
+                data = getLBData()
+            }
+            if (!data || data.length === 0) data = getLBData()
             document.getElementById('lbItems').innerHTML = data.map((d, i) => `
     <div class="lb-item${d.you ? ' lb-you' : ''} rv" style="transition-delay:${i * .04}s">
       <div class="lb-rank lb-rank-${i + 1}"><div class="lb-rank-num">${i + 1}</div></div>
-      <div class="lb-av" style="background:${d.col}">${d.avatar}</div>
+      <div class="lb-av" style="background:${d.col || '#ff9933'}">${d.avatar || '??'}</div>
       <div class="lb-body"><div class="lb-name">${d.name}${d.you ? ' (You)' : ''}</div><div class="lb-meta">${d.city} · ${d.reports} reports · ${d.resolved} resolved</div></div>
       <div class="lb-rhs"><div class="lb-pts">${d.pts}</div><div class="lb-pts-lbl">points</div></div>
     </div>`).join('')
@@ -7089,12 +7173,36 @@
                 }
             })()
 
-        seed()
+        seed() // no-op now, just kept for safety
+
+        // Render immediately from cache so UI is fast
         buildStats()
         buildUserPanel()
         buildMiniMap()
         renderFeed('all')
         setTimeout(rev, 200)
+
+        // Then sync fresh data from backend in background
+        ;(async () => {
+            try {
+                const [freshUser, freshReports, freshVotes] = await Promise.all([
+                    apiCall('GET', '/api/auth/me').catch(() => null),
+                    apiCall('GET', '/api/reports').catch(() => null),
+                    apiCall('GET', '/api/votes').catch(() => null)
+                ])
+                if (freshUser) {
+                    const cached = JSON.parse(localStorage.getItem('ce_user') || '{}')
+                    localStorage.setItem('ce_user', JSON.stringify({ ...cached, ...freshUser }))
+                }
+                if (freshReports) localStorage.setItem('ce_reports', JSON.stringify(freshReports))
+                if (freshVotes) {
+                    const map = {}; freshVotes.forEach(id => { map[id] = true })
+                    localStorage.setItem('ce_votes', JSON.stringify(map))
+                }
+                // Re-render with fresh data
+                buildStats(); buildUserPanel(); buildMiniMap(); renderFeed(feedFilter)
+            } catch(e) { console.warn('Background sync error:', e.message) }
+        })()
         // wire feed nav
         document.getElementById('feedPrev')?.addEventListener('click', () => { if (feedPage > 0) { feedPage--; renderFeedPage() } })
         document.getElementById('feedNext')?.addEventListener('click', () => { const total = feedAll.length; const end = (feedPage + 1) * FEED_PAGE_SIZE; if (end < total) { feedPage++; renderFeedPage() } })
@@ -7103,9 +7211,12 @@
             if (btn) { btn.classList.add('spinning'); setTimeout(() => btn.classList.remove('spinning'), 520) }
             feedPage = 0; renderFeed(feedFilter); toast('Feed refreshed')
         })
-        // Logout
+        // Logout — clear token + user cache
         document.getElementById('logoutBtn')?.addEventListener('click', () => {
             localStorage.removeItem('ce_user')
+            localStorage.removeItem('ce_token')
+            localStorage.removeItem('ce_reports')
+            localStorage.removeItem('ce_votes')
             toast('Logged out — see you soon!')
             setTimeout(() => { window.location.href = '/' }, 1000)
         })

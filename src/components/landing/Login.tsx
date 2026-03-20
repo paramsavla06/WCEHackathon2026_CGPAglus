@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+const API = 'http://localhost:4000'
+
 interface LoginProps {
     onShowToast: (msg: string) => void
 }
@@ -16,77 +18,70 @@ export default function Login({ onShowToast }: LoginProps) {
     const [regPass, setRegPass] = useState('')
     const [agreed, setAgreed] = useState(false)
     const [passErr, setPassErr] = useState('')
+    const [loading, setLoading] = useState(false)
 
-    const doLogin = () => {
+    const doLogin = async () => {
         if (!username || !pass) { onShowToast('Please fill in all fields'); return }
-        let stored = localStorage.getItem('ce_user_' + username.toLowerCase());
-        if (!stored) {
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('ce_user_') && key !== 'ce_user') {
-                    const data = localStorage.getItem(key);
-                    if (data) {
-                        try {
-                            const parsed = JSON.parse(data);
-                            if (parsed.email && parsed.email.toLowerCase() === username.toLowerCase()) {
-                                stored = data;
-                                break;
-                            }
-                        } catch(e) {}
-                    }
-                }
-            }
+        setLoading(true)
+        try {
+            const res = await fetch(`${API}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password: pass })
+            })
+            const data = await res.json()
+            if (!res.ok) { onShowToast(data.error || 'Login failed'); setLoading(false); return }
+            // Store token and user in localStorage
+            localStorage.setItem('ce_token', data.token)
+            localStorage.setItem('ce_user', JSON.stringify(data.user))
+            // Clear old report/vote caches so fresh data is loaded from backend
+            localStorage.removeItem('ce_reports')
+            localStorage.removeItem('ce_votes')
+            onShowToast(`Welcome back, ${data.user.name}! Redirecting...`)
+            setTimeout(() => { window.location.href = '/dashboard.html' }, 900)
+        } catch (e) {
+            onShowToast('Cannot connect to server. Is the backend running?')
         }
-        if (!stored) { onShowToast('No account found'); return }
-        const user = JSON.parse(stored)
-        if (user.password !== pass) { onShowToast('Incorrect password'); return }
-        localStorage.setItem('ce_user', JSON.stringify({
-            name: user.name,
-            username: user.username,
-            email: user.email,
-            city: user.city,
-            points: user.points,
-            streak: user.streak,
-            avatar: user.avatar,
-        }))
-        onShowToast(`Welcome back, ${user.name}! Redirecting...`)
-        setTimeout(() => { window.location.href = '/dashboard.html' }, 900)
+        setLoading(false)
     }
 
-    const doReg = () => {
+    const doReg = async () => {
         if (!firstName || !regUsername || !regEmail || !regCity || !regPass) { onShowToast('Please fill in all required fields'); return }
         if (regUsername.length < 3) { onShowToast('Username must be at least 3 characters'); return }
         if (!/^[a-zA-Z0-9_]+$/.test(regUsername)) { onShowToast('Username can only contain letters, numbers and underscores'); return }
         if (!agreed) { onShowToast('Please agree to the Terms of Service'); return }
         if (regPass.length < 8) { setPassErr('Min 8 characters'); return }
         setPassErr('')
-        if (localStorage.getItem('ce_user_' + regUsername.toLowerCase())) {
-            onShowToast('Username already taken — choose another'); return
-        }
-        const initials = (firstName[0] + (lastName[0] || firstName[1] || '')).toUpperCase()
+        setLoading(true)
+
         const fullName = firstName + (lastName ? ' ' + lastName : '')
-        const userData = {
-            name: fullName,
-            username: regUsername.toLowerCase(),
-            email: regEmail,
-            city: regCity,
-            password: regPass,
-            points: 0,
-            streak: 0,
-            avatar: initials,
+        const initials = (firstName[0] + (lastName[0] || firstName[1] || '')).toUpperCase()
+
+        try {
+            const res = await fetch(`${API}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: regUsername.toLowerCase(),
+                    email: regEmail,
+                    password: regPass,
+                    name: fullName,
+                    city: regCity,
+                    avatar: initials,
+                })
+            })
+            const data = await res.json()
+            if (!res.ok) { onShowToast(data.error || 'Registration failed'); setLoading(false); return }
+            localStorage.setItem('ce_token', data.token)
+            localStorage.setItem('ce_user', JSON.stringify(data.user))
+            localStorage.removeItem('ce_reports')
+            localStorage.removeItem('ce_votes')
+            onShowToast(`Account created! Welcome, ${firstName}!`)
+            setTimeout(() => { window.location.href = '/dashboard.html' }, 900)
+        } catch (e) {
+            onShowToast('Cannot connect to server. Is the backend running?')
         }
-        localStorage.setItem('ce_user_' + regUsername.toLowerCase(), JSON.stringify(userData))
-        localStorage.setItem('ce_user', JSON.stringify({
-            name: fullName,
-            username: regUsername.toLowerCase(),
-            email: regEmail,
-            city: regCity,
-            points: 0,
-            streak: 0,
-            avatar: initials,
-        }))
-        onShowToast(`Account created! Welcome, ${firstName}!`)
-        setTimeout(() => { window.location.href = '/dashboard.html' }, 900)
+        setLoading(false)
     }
 
     const cities = ['Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Bhopal', 'Surat', 'Nagpur', 'Indore', 'Other']
@@ -144,7 +139,9 @@ export default function Login({ onShowToast }: LoginProps) {
                             <input type="password" className="ce-field" placeholder="Your password"
                                 value={pass} onChange={e => setPass(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && doLogin()} />
-                            <button className="ce-bsub" onClick={doLogin}>Sign In to CivicEye</button>
+                            <button className="ce-bsub" onClick={doLogin} disabled={loading}>
+                                {loading ? 'Signing in…' : 'Sign In to CivicEye'}
+                            </button>
                             <div className="ce-cf">
                                 No account yet?{' '}
                                 <a href="#" onClick={e => { e.preventDefault(); setTab('r') }}>Sign up free</a>
@@ -182,7 +179,9 @@ export default function Login({ onShowToast }: LoginProps) {
                                     I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
                                 </label>
                             </div>
-                            <button className="ce-bsub" onClick={doReg}>Create My Account</button>
+                            <button className="ce-bsub" onClick={doReg} disabled={loading}>
+                                {loading ? 'Creating account…' : 'Create My Account'}
+                            </button>
                             <div className="ce-cf">
                                 Already have an account?{' '}
                                 <a href="#" onClick={e => { e.preventDefault(); setTab('l') }}>Sign in</a>
