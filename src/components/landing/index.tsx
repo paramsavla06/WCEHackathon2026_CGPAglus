@@ -7,6 +7,7 @@ import Marquee from './Marquee.tsx'
 import Features from './Features.tsx'
 import Login from './Login.tsx'
 import Footer from './Footer.tsx'
+import CivicBot from './CivicBot.tsx'
 import { STATS } from '../../lib/data.ts'
 import {
     initCursor,
@@ -102,6 +103,7 @@ export default function LandingPage() {
             <Features />
             <Login onShowToast={showToast} />
             <Footer />
+            <CivicBot />
         </>
     )
 }

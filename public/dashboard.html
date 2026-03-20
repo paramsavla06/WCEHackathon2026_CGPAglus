@@ -5455,6 +5455,398 @@
         </div>
 
     </div><!-- /shell -->
+
+    <!-- ═══════════ CIVICBOT WIDGET ═══════════ -->
+    <div id="cbRoot">
+        <input type="file" id="cbFileInput" accept="image/*" capture="environment" style="display:none"/>
+        <!-- FAB — positioned to the LEFT of the orange new-report FAB -->
+        <button id="cbFab" title="Chat with CivicBot" aria-label="Open CivicBot" style="
+            position:fixed;bottom:26px;right:88px;
+            width:50px;height:50px;border-radius:50%;
+            background:linear-gradient(135deg,#ff9933,#138808);
+            border:2.5px solid rgba(255,255,255,.88);
+            color:white;cursor:pointer;display:flex;
+            align-items:center;justify-content:center;
+            box-shadow:0 4px 20px rgba(0,0,0,.3);
+            z-index:200;transition:transform .3s,box-shadow .3s;
+            animation:cbPulse 2.5s infinite;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+        </button>
+        <!-- Chat Window -->
+        <div id="cbWindow" style="
+            position:fixed;bottom:88px;right:24px;
+            width:385px;max-width:calc(100vw - 28px);
+            height:540px;max-height:calc(100vh - 108px);
+            background:#1a1a2e;border-radius:20px;
+            box-shadow:0 24px 70px rgba(0,0,0,.55);
+            display:none;flex-direction:column;overflow:hidden;
+            z-index:9998;border:1px solid rgba(255,255,255,.1);">
+            <!-- Header -->
+            <div style="padding:14px 18px;background:linear-gradient(135deg,#ff9933,#138808);color:white;display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
+                <div style="flex:1">
+                    <span style="font-weight:700;font-size:15px;display:block;font-family:'Sora',sans-serif">CivicBot</span>
+                    <span id="cbStatus" style="font-size:10.5px;opacity:.88;font-family:'Sora',sans-serif">Ready to help</span>
+                </div>
+                <button id="cbClose" style="background:rgba(255,255,255,.2);border:none;color:white;width:30px;height:30px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <!-- Progress bar -->
+            <div id="cbProg" style="display:none;align-items:center;justify-content:center;padding:7px 14px;background:rgba(255,153,51,.08);border-bottom:1px solid rgba(255,255,255,.08);gap:6px;flex-shrink:0"></div>
+            <!-- Messages -->
+            <div id="cbMsgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#1a1a2e;scroll-behavior:smooth"></div>
+            <!-- Input -->
+            <div style="padding:12px;border-top:1px solid rgba(255,255,255,.09);display:flex;gap:8px;background:#16162a;flex-shrink:0">
+                <input id="cbInput" type="text" placeholder="Message CivicBot…" style="flex:1;padding:10px 15px;border-radius:24px;border:2px solid rgba(255,255,255,.1);background:#2d2d44;color:white;font-size:13.5px;outline:none;font-family:'Sora',sans-serif;transition:border-color .2s"/>
+                <button id="cbSend" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff9933,#138808);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes cbPulse { 0%,100%{box-shadow:0 4px 20px rgba(0,0,0,.3)}50%{box-shadow:0 4px 28px rgba(255,153,51,.45)} }
+        #cbFab:hover { transform:scale(1.1); box-shadow:0 8px 28px rgba(255,153,51,.4)!important; }
+        #cbInput:focus { border-color:#ff9933!important; }
+        .cb2-msg { max-width:86%;padding:11px 15px;border-radius:15px;font-size:13.5px;line-height:1.5;color:white;word-wrap:break-word;white-space:pre-line;font-family:'Sora',sans-serif }
+        .cb2-bot { background:#2d2d44;align-self:flex-start;border-bottom-left-radius:4px }
+        .cb2-user { background:linear-gradient(135deg,#ff9933,#e67e22);align-self:flex-end;border-bottom-right-radius:4px }
+        .cb2-qrs { display:flex;flex-wrap:wrap;gap:7px;margin-top:9px }
+        .cb2-qr { background:rgba(255,153,51,.13);border:1px solid rgba(255,153,51,.38);color:#ff9933;padding:6px 13px;border-radius:20px;font-size:11.5px;cursor:pointer;transition:.2s;font-weight:500;font-family:'Sora',sans-serif }
+        .cb2-qr:hover { background:rgba(255,153,51,.23);transform:translateY(-1px) }
+        .cb2-acts { display:flex;flex-wrap:wrap;gap:7px;margin-top:9px }
+        .cb2-loc { background:linear-gradient(135deg,#138808,#0d6b06);color:white;border:none;padding:7px 13px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:.2s }
+        .cb2-loc:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 12px rgba(19,136,8,.4)}
+        .cb2-loc:disabled{opacity:.6;cursor:not-allowed}
+        .cb2-photo { background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:7px 13px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:.2s }
+        .cb2-photo:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(118,75,162,.4)}
+        .cb2-typing { display:flex;gap:5px;padding:14px }
+        .cb2-typing span { width:7px;height:7px;background:#888;border-radius:50%;animation:cbBounce2 1.4s infinite ease-in-out }
+        .cb2-typing span:nth-child(2){animation-delay:.2s}
+        .cb2-typing span:nth-child(3){animation-delay:.4s}
+        @keyframes cbBounce2 { 0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)} }
+        #cbMsgs::-webkit-scrollbar{width:5px}
+        #cbMsgs::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:3px}
+        #cbMsgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+        @media(max-width:480px){
+            #cbWindow{bottom:0!important;right:0!important;width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;border-radius:0!important}
+            #cbFab{right:80px!important}
+        }
+    </style>
+    <script>
+    (function(){
+        const ISSUE_CATEGORIES = [
+            {id:'pothole',label:'Pothole',icon:'🕳️',followUp:'Can you describe the size and exact location of the pothole?'},
+            {id:'streetlight',label:'Streetlight Failure',icon:'💡',followUp:'Is the light completely out or flickering?'},
+            {id:'waste',label:'Waste Overflow',icon:'🗑️',followUp:'How long has this been overflowing?'},
+            {id:'water',label:'Water Pipe Leak',icon:'💧',followUp:'Is the water flooding the road?'},
+            {id:'road',label:'Road Collapse',icon:'🛣️',followUp:'How large is the collapse?'},
+            {id:'drainage',label:'Blocked Drainage',icon:'🚰',followUp:'Is this causing waterlogging?'},
+            {id:'park',label:'Park Damage',icon:'🌳',followUp:'What kind of damage?'},
+            {id:'noise',label:'Noise Complaint',icon:'🔊',followUp:'What time of day is the noise happening?'},
+        ]
+        const CITIES = ['Mumbai','Delhi','Bengaluru','Chennai','Hyderabad','Pune','Kolkata','Ahmedabad','Jaipur','Lucknow','Other']
+         const PREFIX = 'ce_'
+
+        // ── Multilingual strings ─────────────────────────────────────────
+
+        const STRINGS = {
+          en: { greeting:'How can I help you today?', loginRequired:'Please log in to use CivicBot. Sign in to your CivicEye account to report issues and track their status.', loginBtn:'Sign In', reportPrompt:'Select the type of issue:', detailPrompt:'Please describe the issue in detail.', detailShort:'Please provide more detail. Example: Large pothole near the bus stop.', locationPrompt:'Enter the location or detect it automatically.', locationShort:'Please provide a more specific location.', cityPrompt:'Which city is this in?', cityNotFound:'City not recognized. Please select from:', landmarkPrompt:'Any nearby landmark? (Optional)', photoPrompt:'Would you like to add a photo? Reports with photos are 3x more likely to be resolved.', submitSuccess:'Report submitted successfully!', points:'Civic Points', pointsLabel:'Badge', earn:'Earn more points:', helpText:'I can help with: reporting issues, civic points, and location detection.', thanks:'You are welcome! Anything else?', bye:'Thank you for using CivicBot. Every report counts.', unknown:'I did not understand that. How can I help?', photoAttached:'Photo attached to your report.', detecting:'Detecting your location...', detected:'Location detected:', locFail:'Could not detect location. Please type it manually.', lang:'Language', photoBtn:'Add Photo', locBtn:'Detect Location', detecting2:'Detecting...' },
+          hi: { greeting:'आज मैं आपकी कैसे सहायता कर सकता हूं?', loginRequired:'CivicBot का उपयोग करने के लिए कृपया लॉग इन करें। समस्याएं रिपोर्ट करने के लिए अपने CivicEye खाते में साइन इन करें।', loginBtn:'साइन इन', reportPrompt:'समस्या का प्रकार चुनें:', detailPrompt:'कृपया समस्या का विस्तार से वर्णन करें।', detailShort:'कृपया अधिक विवरण दें। उदाहरण: बस स्टॉप के पास बड़ा गड्ढा।', locationPrompt:'स्थान दर्ज करें या स्वतः पहचानें।', locationShort:'कृपया अधिक विशिष्ट स्थान दें।', cityPrompt:'यह किस शहर में है?', cityNotFound:'शहर नहीं मिला। कृपया चुनें:', landmarkPrompt:'कोई नजदीकी स्थल? (वैकल्पिक)', photoPrompt:'क्या आप फ़ोटो जोड़ना चाहते हैं? फ़ोटो के साथ रिपोर्ट 3 गुना अधिक हल होती है।', submitSuccess:'रिपोर्ट सफलतापूर्वक सबमिट हुई!', points:'नागरिक अंक', pointsLabel:'बैज', earn:'अधिक अंक कैसे अर्जित करें:', helpText:'मैं समस्या रिपोर्ट करने, नागरिक अंक और स्थान पहचान में मदद कर सकता हूं।', thanks:'आपका स्वागत है! कुछ और?', bye:'CivicBot का उपयोग करने के लिए धन्यवाद।', unknown:'मैं समझ नहीं पाया। मैं कैसे मदद करूं?', photoAttached:'फ़ोटो आपकी रिपोर्ट से जुड़ी।', detecting:'आपका स्थान पहचाना जा रहा है...', detected:'स्थान मिला:', locFail:'स्थान पता नहीं चला। कृपया मैन्युअल रूप से लिखें।', lang:'भाषा', photoBtn:'फ़ोटो जोड़ें', locBtn:'स्थान पहचानें', detecting2:'पहचान हो रही है...' },
+          mr: { greeting:'आज मी तुम्हाला कशी मदत करू शकतो?', loginRequired:'CivicBot वापरण्यासाठी कृपया लॉग इन करा.', loginBtn:'साइन इन', reportPrompt:'समस्येचा प्रकार निवडा:', detailPrompt:'कृपया समस्येचे तपशीलवार वर्णन करा.', detailShort:'अधिक तपशील द्या. उदाहरण: बस स्थानकाजवळ मोठा खड्डा.', locationPrompt:'स्थान प्रविष्ट करा किंवा आपोआप शोधा.', locationShort:'अधिक विशिष्ट स्थान द्या.', cityPrompt:'हे कोणत्या शहरात आहे?', cityNotFound:'शहर सापडले नाही. निवडा:', landmarkPrompt:'जवळचा खूणाचा ठिकाण? (पर्यायी)', photoPrompt:'फोटो जोडायचा आहे का? फोटोसह रिपोर्ट 3 पट जास्त सुटतात.', submitSuccess:'रिपोर्ट यशस्वीरीत्या सबमिट झाली!', points:'नागरी गुण', pointsLabel:'बॅज', earn:'जास्त गुण कसे मिळवायचे:', helpText:'समस्या रिपोर्ट करणे, नागरी गुण आणि स्थान शोधणे यात मी मदत करतो.', thanks:'आपले स्वागत आहे! आणखी काही?', bye:'CivicBot वापरल्याबद्दल धन्यवाद.', unknown:'मला समजले नाही. मी कशी मदत करू?', photoAttached:'फोटो तुमच्या रिपोर्टशी जोडला गेला.', detecting:'तुमचे स्थान शोधत आहे...', detected:'स्थान मिळाले:', locFail:'स्थान सापडले नाही. कृपया हाताने लिहा.', lang:'भाषा', photoBtn:'फोटो जोडा', locBtn:'स्थान शोधा', detecting2:'शोधत आहे...' },
+          ta: { greeting:'நான் உங்களுக்கு எப்படி உதவலாம்?', loginRequired:'CivicBot பயன்படுத்த உள்நுழையவும்.', loginBtn:'உள்நுழை', reportPrompt:'சிக்கல் வகையை தேர்ந்தெடுக்கவும்:', detailPrompt:'சிக்கலை விரிவாக விவரிக்கவும்.', detailShort:'மேலும் விவரங்கள் தரவும். எடு: பேருந்து நிறுத்தத்தருகில் பெரிய குழி.', locationPrompt:'இடத்தை உள்ளிடவும் அல்லது தானாக கண்டறியவும்.', locationShort:'குறிப்பிட்ட இடத்தை தரவும்.', cityPrompt:'இது எந்த நகரில் உள்ளது?', cityNotFound:'நகரம் கண்டறியப்படவில்லை. தேர்வு செய்க:', landmarkPrompt:'அருகிலுள்ள அடையாளம்? (விருப்பம்)', photoPrompt:'புகைப்படம் சேர்க்கலாமா? புகைப்படங்களுடன் கோரிக்கைகள் 3 மடங்கு வேகமாக தீர்க்கப்படுகின்றன.', submitSuccess:'கோரிக்கை வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!', points:'குடிமக்கள் புள்ளிகள்', pointsLabel:'பேட்ஜ்', earn:'மேலும் புள்ளிகள் பெறலாம்:', helpText:'சிக்கல்களை புகாரளிக்க, குடிமக்கள் புள்ளிகள் மற்றும் இட கண்டறிதலுக்கு உதவுகிறேன்.', thanks:'வரவேற்கிறோம்! வேறு ஏதாவது?', bye:'CivicBot பயன்படுத்தியதற்கு நன்றி.', unknown:'புரியவில்லை. எப்படி உதவலாம்?', photoAttached:'புகைப்படம் கோரிக்கையில் சேர்க்கப்பட்டது.', detecting:'உங்கள் இடம் கண்டறியப்படுகிறது...', detected:'இடம் கண்டறியப்பட்டது:', locFail:'இடம் கண்டறிய முடியவில்லை. கையேடாக உள்ளிடவும்.', lang:'மொழி', photoBtn:'புகைப்படம் சேர்', locBtn:'இடம் கண்டறி', detecting2:'கண்டறிகிறது...' },
+          te: { greeting:'నేను మీకు ఎలా సహాయం చేయగలను?', loginRequired:'CivicBot ఉపయోగించడానికి దయచేసి లాగిన్ అవ్వండి.', loginBtn:'సైన్ ఇన్', reportPrompt:'సమస్య రకాన్ని ఎంచుకోండి:', detailPrompt:'సమస్యను వివరంగా వివరించండి.', detailShort:'మరిన్ని వివరాలు ఇవ్వండి.', locationPrompt:'స్థలాన్ని నమోదు చేయండి లేదా స్వయంచాలకంగా గుర్తించండి.', locationShort:'మరింత నిర్దిష్ట స్థలం ఇవ్వండి.', cityPrompt:'ఇది ఏ నగరంలో ఉంది?', cityNotFound:'నగరం కనుగొనబడలేదు. ఎంచుకోండి:', landmarkPrompt:'సమీప ల్యాండ్‌మార్క్? (ఐచ్ఛికం)', photoPrompt:'ఫోటో జోడించాలా?', submitSuccess:'నివేదిక విజయవంతంగా సమర్పించబడింది!', points:'పౌర పాయింట్లు', pointsLabel:'బ్యాడ్జ్', earn:'మరిన్ని పాయింట్లు:', helpText:'సమస్యలు నివేదించడానికి మరియు పౌర పాయింట్లకు సహాయం చేస్తాను.', thanks:'స్వాగతం! మరేదైనా?', bye:'CivicBot ఉపయోగించినందుకు ధన్యవాదాలు.', unknown:'అర్థం కాలేదు. ఎలా సహాయం చేయగలను?', photoAttached:'ఫోటో నివేదికకు జోడించబడింది.', detecting:'మీ స్థానాన్ని గుర్తిస్తోంది...', detected:'స్థానం గుర్తించబడింది:', locFail:'స్థానం గుర్తించడం సాధ్యం కాలేదు.', lang:'భాష', photoBtn:'ఫోటో జోడించు', locBtn:'స్థానాన్ని గుర్తించు', detecting2:'గుర్తిస్తోంది...' },
+          bn: { greeting:'আজ আমি আপনাকে কীভাবে সাহায্য করতে পারি?', loginRequired:'CivicBot ব্যবহার করতে অনুগ্রহ করে লগ ইন করুন।', loginBtn:'সাইন ইন', reportPrompt:'সমস্যার ধরন নির্বাচন করুন:', detailPrompt:'অনুগ্রহ করে সমস্যাটি বিস্তারিতভাবে বর্ণনা করুন।', detailShort:'আরো বিশদ দিন।', locationPrompt:'অবস্থান লিখুন বা স্বয়ংক্রিয়ভাবে সনাক্ত করুন।', locationShort:'আরো নির্দিষ্ট অবস্থান দিন।', cityPrompt:'এটি কোন শহরে?', cityNotFound:'শহর পাওয়া যায়নি। বেছে নিন:', landmarkPrompt:'কাছাকাছি ল্যান্ডমার্ক? (ঐচ্ছিক)', photoPrompt:'ছবি যোগ করতে চান?', submitSuccess:'রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে!', points:'নাগরিক পয়েন্ট', pointsLabel:'ব্যাজ', earn:'আরো পয়েন্ট অর্জন করুন:', helpText:'সমস্যা রিপোর্ট করতে এবং নাগরিক পয়েন্টের জন্য সাহায্য করি।', thanks:'আপনাকে স্বাগতম! আর কিছু?', bye:'CivicBot ব্যবহারের জন্য ধন্যবাদ।', unknown:'বুঝতে পারিনি। কীভাবে সাহায্য করব?', photoAttached:'ছবি রিপোর্টে যুক্ত হয়েছে।', detecting:'আপনার অবস্থান সনাক্ত করা হচ্ছে...', detected:'অবস্থান সনাক্ত হয়েছে:', locFail:'অবস্থান সনাক্ত করা যায়নি।', lang:'ভাষা', photoBtn:'ছবি যোগ করুন', locBtn:'অবস্থান সনাক্ত করুন', detecting2:'সনাক্ত করা হচ্ছে...' },
+          gu: { greeting:'આજે હું તમારી કેવી મદદ કરી શકું?', loginRequired:'CivicBot ઉપયોગ કરવા માટે કૃપા કરી લૉગ ઇન કરો.', loginBtn:'સાઇન ઇન', reportPrompt:'સમસ્યાનો પ્રકાર પસંદ કરો:', detailPrompt:'કૃપા કરી સમસ્યાનું વિગતવાર વર્ણન કરો.', detailShort:'વધુ વિગત આપો.', locationPrompt:'સ્થાન દાખલ કરો અથવા આપોઆપ ઓળખો.', locationShort:'વધુ ચોક્કસ સ્થાન આપો.', cityPrompt:'આ કયા શહેરમાં છે?', cityNotFound:'શહેર મળ્યું નહીં. પસંદ કરો:', landmarkPrompt:'નજીકનું સ્થળ? (વૈકલ્પિક)', photoPrompt:'ફોટો ઉમેરવો છે?', submitSuccess:'અહેવાલ સફળતાપૂર્વક સબમિટ થઈ ગયો!', points:'નાગરિક પોઈન્ટ', pointsLabel:'બેજ', earn:'વધુ પોઈન્ટ કેવી રીતે:', helpText:'સમસ્યા અહેવાલ, નાગરિક પોઈન્ટ અને સ્થળ શોધ માટે મદદ.', thanks:'આપનું સ્વાગત! બીજું?', bye:'CivicBot ઉપયોગ કરવા માટે આભાર.', unknown:'સમજ્યો નહીં. કેવી રીતે મદદ કરું?', photoAttached:'ફોટો અહેવાલ સાથે જોડ્યો.', detecting:'તમારું સ્થાન ઓળખી રહ્યા છીએ...', detected:'સ્થાન મળ્યું:', locFail:'સ્થાન મળ્યું નહીં. મૅન્યુઅલ ટાઇપ કરો.', lang:'ભાષા', photoBtn:'ફોટો ઉમેરો', locBtn:'સ્થાન ઓળખો', detecting2:'ઓળખી રહ્યા છીએ...' },
+          kn: { greeting:'ಇಂದು ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?', loginRequired:'CivicBot ಬಳಸಲು ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಮಾಡಿ.', loginBtn:'ಸೈನ್ ಇನ್', reportPrompt:'ಸಮಸ್ಯೆಯ ಪ್ರಕಾರ ಆಯ್ಕೆ ಮಾಡಿ:', detailPrompt:'ಸಮಸ್ಯೆಯನ್ನು ವಿವರವಾಗಿ ವಿವರಿಸಿ.', detailShort:'ಹೆಚ್ಚಿನ ವಿವರ ನೀಡಿ.', locationPrompt:'ಸ್ಥಳ ನಮೂದಿಸಿ ಅಥವಾ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಪತ್ತೆ ಮಾಡಿ.', locationShort:'ನಿರ್ದಿಷ್ಟ ಸ್ಥಳ ನೀಡಿ.', cityPrompt:'ಇದು ಯಾವ ನಗರದಲ್ಲಿ ಇದೆ?', cityNotFound:'ನಗರ ಸಿಗಲಿಲ್ಲ. ಆಯ್ಕೆ ಮಾಡಿ:', landmarkPrompt:'ಹತ್ತಿರದ ಲ್ಯಾಂಡ್‌ಮಾರ್ಕ್? (ಐಚ್ಛಿಕ)', photoPrompt:'ಫೋಟೋ ಸೇರಿಸಬೇಕೆ?', submitSuccess:'ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!', points:'ನಾಗರಿಕ ಅಂಕಗಳು', pointsLabel:'ಬ್ಯಾಡ್ಜ್', earn:'ಹೆಚ್ಚಿನ ಅಂಕಗಳು:', helpText:'ಸಮಸ್ಯೆ ವರದಿ ಮತ್ತು ನಾಗರಿಕ ಅಂಕಗಳಿಗೆ ಸಹಾಯ.', thanks:'ಸ್ವಾಗತ! ಇನ್ನೇನಾದರೂ?', bye:'CivicBot ಬಳಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದ.', unknown:'ಅರ್ಥವಾಗಲಿಲ್ಲ. ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?', photoAttached:'ಫೋಟೋ ವರದಿಗೆ ಸೇರಿಸಲಾಗಿದೆ.', detecting:'ನಿಮ್ಮ ಸ್ಥಳ ಪತ್ತೆ ಹಚ್ಚಲಾಗುತ್ತಿದೆ...', detected:'ಸ್ಥಳ ಪತ್ತೆಯಾಯಿತು:', locFail:'ಸ್ಥಳ ಪತ್ತೆ ಮಾಡಲಾಗಲಿಲ್ಲ. ಕೈಯಾರೆ ಟೈಪ್ ಮಾಡಿ.', lang:'ಭಾಷೆ', photoBtn:'ಫೋಟೋ ಸೇರಿಸಿ', locBtn:'ಸ್ಥಳ ಪತ್ತೆ ಮಾಡಿ', detecting2:'ಪತ್ತೆ ಮಾಡಲಾಗುತ್ತಿದೆ...' },
+          pa: { greeting:'ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?', loginRequired:'CivicBot ਵਰਤਣ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਲੌਗ ਇਨ ਕਰੋ।', loginBtn:'ਸਾਈਨ ਇਨ', reportPrompt:'ਸਮੱਸਿਆ ਦੀ ਕਿਸਮ ਚੁਣੋ:', detailPrompt:'ਕਿਰਪਾ ਕਰਕੇ ਸਮੱਸਿਆ ਦਾ ਵੇਰਵਾ ਦਿਓ।', detailShort:'ਹੋਰ ਵੇਰਵਾ ਦਿਓ।', locationPrompt:'ਸਥਾਨ ਦਰਜ ਕਰੋ ਜਾਂ ਆਪਣੇ ਆਪ ਲੱਭੋ।', locationShort:'ਵਧੇਰੇ ਨਿਸ਼ਚਿਤ ਸਥਾਨ ਦਿਓ।', cityPrompt:'ਇਹ ਕਿਸ ਸ਼ਹਿਰ ਵਿੱਚ ਹੈ?', cityNotFound:'ਸ਼ਹਿਰ ਨਹੀਂ ਮਿਲਿਆ। ਚੁਣੋ:', landmarkPrompt:'ਨੇੜੇ ਦਾ ਨਿਸ਼ਾਨ? (ਵਿਕਲਪਿਕ)', photoPrompt:'ਕੀ ਤੁਸੀਂ ਫੋਟੋ ਜੋੜਨਾ ਚਾਹੁੰਦੇ ਹੋ?', submitSuccess:'ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਜਮ੍ਹਾ ਕੀਤੀ!', points:'ਨਾਗਰਿਕ ਪੁਆਇੰਟ', pointsLabel:'ਬੈਜ', earn:'ਹੋਰ ਪੁਆਇੰਟ:', helpText:'ਸਮੱਸਿਆ ਰਿਪੋਰਟ ਅਤੇ ਨਾਗਰਿਕ ਪੁਆਇੰਟਾਂ ਲਈ ਮਦਦ।', thanks:'ਜੀ ਆਇਆਂ ਨੂੰ! ਹੋਰ ਕੁਝ?', bye:'CivicBot ਵਰਤਣ ਲਈ ਧੰਨਵਾਦ।', unknown:'ਸਮਝ ਨਹੀਂ ਆਇਆ। ਕਿਵੇਂ ਮਦਦ ਕਰਾਂ?', photoAttached:'ਫੋਟੋ ਰਿਪੋਰਟ ਨਾਲ ਜੋੜੀ ਗਈ।', detecting:'ਤੁਹਾਡਾ ਸਥਾਨ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...', detected:'ਸਥਾਨ ਮਿਲਿਆ:', locFail:'ਸਥਾਨ ਨਹੀਂ ਮਿਲਿਆ। ਹੱਥੀਂ ਲਿਖੋ।', lang:'ਭਾਸ਼ਾ', photoBtn:'ਫੋਟੋ ਜੋੜੋ', locBtn:'ਸਥਾਨ ਲੱਭੋ', detecting2:'ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...' },
+        }
+        const LANG_LIST = [
+          {code:'en',native:'English'},{code:'hi',native:'हिन्दी'},{code:'mr',native:'मराठी'},
+          {code:'ta',native:'தமிழ்'},{code:'te',native:'తెలుగు'},{code:'bn',native:'বাংলা'},
+          {code:'gu',native:'ગુજરાતી'},{code:'kn',native:'ಕನ್ನಡ'},{code:'pa',native:'ਪੰਜਾਬੀ'},
+        ]
+        let currentLang = localStorage.getItem('ce_lang') || 'en'
+        if (!STRINGS[currentLang]) currentLang = 'en'
+        const T = () => STRINGS[currentLang] || STRINGS.en
+
+        // emoji stripper
+        function stripEmoji(str) {
+          return str.replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '').replace(/[\u2702\u2705\u2706\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u2660\u2663\u2665-\u267E\u2680-\u2692\u2694-\u2697\u2699\u269B\u269C\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26CE-\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2708\u2709\u270A-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF-\u27BF\u23E9-\u23F3\u23F8-\u23FA\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u231A\u231B\u24C2]/gu, '').trim()
+        }
+
+        const fab = document.getElementById('cbFab')
+        const win = document.getElementById('cbWindow')
+        const closeBtn = document.getElementById('cbClose')
+        const inputEl = document.getElementById('cbInput')
+        const sendBtn = document.getElementById('cbSend')
+        const msgsCont = document.getElementById('cbMsgs')
+        const prog = document.getElementById('cbProg')
+        const statusEl = document.getElementById('cbStatus')
+        const fileInp = document.getElementById('cbFileInput')
+
+        let step = 0, data = {}, detecting = false
+
+        function getUser() { try { return JSON.parse(localStorage.getItem(PREFIX+'user')||'null') } catch { return null } }
+
+        // inject language selector into header
+        function buildLangPicker() {
+          const header = win.querySelector('div')
+          if (!header || document.getElementById('cbLangSel')) return
+          const sel = document.createElement('select')
+          sel.id = 'cbLangSel'
+          sel.style.cssText = 'background:rgba(255,255,255,.18);border:none;color:white;border-radius:6px;padding:2px 6px;font-size:11px;font-family:Sora,sans-serif;cursor:pointer;outline:none;max-width:88px'
+          LANG_LIST.forEach(l => {
+            const o = document.createElement('option'); o.value=l.code; o.textContent=l.native
+            o.style.color = '#000'; o.style.background = '#fff'
+            if(l.code===currentLang) o.selected=true; sel.appendChild(o)
+          })
+          sel.onchange = () => { currentLang = sel.value; localStorage.setItem('ce_lang',currentLang) }
+          header.insertBefore(sel, header.querySelector('#cbClose'))
+        }
+
+        fab.onclick = () => { win.style.display='flex'; fab.style.display='none'; buildLangPicker() }
+        closeBtn.onclick = () => { win.style.display='none'; fab.style.display='flex' }
+        sendBtn.onclick = () => handleSend()
+        inputEl.onkeydown = e => { if(e.key==='Enter') handleSend() }
+        fileInp.onchange = e => {
+            const f = e.target.files?.[0]; if(!f) return
+            const r = new FileReader()
+            r.onload = ev => { 
+                data.photo = ev.target.result; 
+                if (step === 0) addBot(`Photo attached! Please select a category to continue.`)
+                else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
+                else if (step === 2) addBot(`Photo attached! Enter the location or detect it automatically.`, undefined, { showLocBtn: true })
+                else if (step === 3 || step === 4) addBot(`Photo attached! Any nearby landmark?`, ['Skip'])
+                else if (step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
+                else addBot(T().photoAttached)
+            }
+            r.readAsDataURL(f)
+            e.target.value = ''
+        }
+
+        // init — login gate
+        const user = getUser()
+        if (user) {
+            statusEl.textContent = 'Logged in'
+            const name = user.name?.split(' ')[0] || 'there'
+            addBot(`Namaste, ${name}. ${T().greeting}`, ['Report an issue','My Civic Points','Help'])
+        } else {
+            statusEl.textContent = 'Not logged in'
+            addBot(T().loginRequired, [T().loginBtn])
+        }
+
+        function addBot(text, replies, opts={}) {
+            const wrap = document.createElement('div')
+            wrap.className = 'cb2-msg cb2-bot'
+            wrap.textContent = stripEmoji(text)
+
+            if (opts.showLocBtn || opts.showPhotoBtn) {
+                const acts = document.createElement('div'); acts.className = 'cb2-acts'
+                if (opts.showLocBtn) {
+                    const b = document.createElement('button'); b.className = 'cb2-loc'
+                    b.textContent = detecting ? '🔄 Detecting…' : '📍 Detect Location'; b.disabled = detecting
+                    b.onclick = handleLocDetect; acts.appendChild(b)
+                }
+                if (opts.showPhotoBtn) {
+                    const b = document.createElement('button'); b.className = 'cb2-photo'
+                    b.textContent = '📸 Add Photo'; b.onclick = () => fileInp.click(); acts.appendChild(b)
+                }
+                wrap.appendChild(acts)
+            }
+            if (replies?.length) {
+                const qrs = document.createElement('div'); qrs.className = 'cb2-qrs'
+                replies.forEach(r => {
+                    const b = document.createElement('button'); b.className = 'cb2-qr'
+                    b.textContent = r; b.onclick = () => handleSend(r); qrs.appendChild(b)
+                })
+                wrap.appendChild(qrs)
+            }
+            msgsCont.appendChild(wrap); msgsCont.scrollTop = msgsCont.scrollHeight
+        }
+        function addUser(text) {
+            const d = document.createElement('div'); d.className='cb2-msg cb2-user'; d.textContent=text
+            msgsCont.appendChild(d); msgsCont.scrollTop = msgsCont.scrollHeight
+        }
+        function showTyping() {
+            const d = document.createElement('div'); d.className='cb2-msg cb2-bot cb2-typing'; d.id='cbTyp'
+            d.innerHTML='<span></span><span></span><span></span>'; msgsCont.appendChild(d); msgsCont.scrollTop = msgsCont.scrollHeight
+        }
+        function hideTyping() { document.getElementById('cbTyp')?.remove() }
+        function setProgress(n) {
+            if (!n) { prog.style.display='none'; return }
+            const steps = ['Category','Details','Location','Landmark']
+            prog.style.display='flex'
+            prog.innerHTML = steps.map((s,i) => `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;opacity:${i<n?1:.35};transition:opacity .3s">
+                    <span style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;background:${i<n?'linear-gradient(135deg,#ff9933,#138808)':'rgba(255,255,255,.15)'}">${i+1}</span>
+                    <small style="font-size:8.5px;color:#888;font-family:'Sora',sans-serif">${s}</small>
+                </div>${i<3?'<div style="width:20px;height:2px;background:rgba(255,255,255,.15);margin-bottom:11px"></div>':''}`).join('')
+        }
+
+        function detectCat(text) { const l=text.toLowerCase(); return ISSUE_CATEGORIES.find(c=>l.includes(c.id)||l.includes(c.label.toLowerCase())) }
+        function detectCity(text) { const l=text.toLowerCase(); return CITIES.find(c=>l.includes(c.toLowerCase())) }
+
+        async function handleLocDetect() {
+            if(detecting) return; detecting=true
+            addBot('📍 Detecting your location… Please allow location access.', undefined, {showLocBtn:true, isDetecting:true})
+            try {
+                const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000}))
+                const {latitude:lat,longitude:lng} = pos.coords
+                let address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`, city
+                try {
+                    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    const d2 = await r.json()
+                    if(d2.display_name) address = d2.display_name.split(', ').slice(0,4).join(', ')
+                    city = d2.address?.city||d2.address?.town||d2.address?.village||d2.address?.municipality
+                } catch(_){}
+                const cityMatch = CITIES.find(c=>city&&c.toLowerCase()===city.toLowerCase()) || CITIES.find(c=>address.toLowerCase().includes(c.toLowerCase())) || city || 'Mumbai'
+                data = {...data, latitude:lat, longitude:lng, detectedAddress:address, city:cityMatch, location:address}
+                addBot(`✅ Location Detected!\n\n📍 ${address}\n\n🏢 Any nearby landmark? (Optional)`,['Skip'],{showPhotoBtn:true})
+                step=4; setProgress(4)
+            } catch { addBot('❌ Could not detect location. Please type it manually.',['Enter manually'],{showLocBtn:true}) }
+            detecting=false
+        }
+
+        async function submitReport(landmark) {
+            const u = getUser()
+            const token = localStorage.getItem(PREFIX+'token')
+            if(!u || !token) {
+                localStorage.setItem(PREFIX+'draft_report', JSON.stringify({...data,landmark,draftDate:new Date().toISOString()}))
+                setProgress(0)
+                const cat=ISSUE_CATEGORIES.find(c=>c.id===data.category)
+                addBot(`Draft Saved!\n\n━━━━━━━━━━━━━━\n${cat?.label}\n📝 ${data.description}\n📍 ${data.location}\n🏙️ ${data.city}\n🏢 ${landmark}\n━━━━━━━━━━━━━━\n\n🔒 Please log in to submit.`,['Sign in'])
+                step=-1; data={}; return
+            }
+
+            const cat = ISSUE_CATEGORIES.find(c=>c.id===data.category)
+            const payload = {
+                type: data.category,
+                label: cat?.label,
+                title: data.description?.slice(0,60)||cat?.label||'Issue',
+                description: data.description||'',
+                location: data.location||'',
+                city: data.city||'Mumbai',
+                lat: data.latitude,
+                lng: data.longitude,
+                sev: 'medium',
+                imageUrl: data.photo||null,
+                landmark: landmark
+            }
+
+            try {
+                const r = await fetch('http://localhost:4000/api/reports', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                })
+                if (!r.ok) {
+                    const errDesc = await r.json()
+                    throw new Error(errDesc.error || 'Server error')
+                }
+                const newReport = await r.json()
+                
+                u.points=(u.points||0)+10; localStorage.setItem(PREFIX+'user',JSON.stringify(u))
+                setProgress(0)
+                addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\n🎫 ${newReport.id}\n${cat?.label}\n📍 ${data.location}, ${data.city}\n🏢 ${landmark}\n${data.photo?'📸 Photo attached\n':''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned! 🏆`,['Report another','Thank you!'])
+                localStorage.removeItem(PREFIX+'reports') // Invalidate to fetch fresh
+            } catch (e) {
+                addBot(`❌ Failed to submit. Error: ${e.message}`,['Try again'])
+            }
+            step=0; data={}
+        }
+
+        function handleReportStep(text) {
+            const lower=text.toLowerCase()
+            if(step===-1){
+                if(lower.includes('submit')||lower.includes('send')){
+                    const draft=localStorage.getItem(PREFIX+'draft_report')
+                    if(draft){data=JSON.parse(draft);localStorage.removeItem(PREFIX+'draft_report');submitReport(data.landmark||'Not specified')}
+                    else{step=0;addBot('No draft found. Start a new report?',['Report an issue'])}
+                } else if(lower.includes('cancel')||lower.includes('discard')){
+                    localStorage.removeItem(PREFIX+'draft_report');step=0;data={}
+                    addBot('Draft discarded. Anything else?',['Report an issue','Help me'])
+                } else { addBot("Draft saved! Say 'submit my report' after signing in.",['Submit my report','Cancel draft']) }
+                return
+            }
+            if(step===0){
+                const cat=detectCat(text)
+                if(cat){data={...data,category:cat.id};setProgress(1);step=1;addBot(`${cat.icon} ${cat.label} selected.\n\n${cat.followUp}`,undefined,{showPhotoBtn:true})}
+                else addBot('Please select a category:\n\n'+ISSUE_CATEGORIES.map(c=>`${c.icon} ${c.label}`).join('\n'),['Pothole','Streetlight','Waste','Water Leak'])
+                return
+            }
+            if(step===1){
+                if(text.trim().length<10){addBot("Please provide more details.\n\nExample: 'Large pothole, 2 feet wide, near bus stop'",undefined,{showPhotoBtn:true})}
+                else{data={...data,description:text.trim()};setProgress(2);step=2;addBot('Got it! 📍 Enter the location or detect it.',undefined,{showLocBtn:true})}
+                return
+            }
+            if(step===2){
+                if(lower.includes('detect')&&lower.includes('location')){handleLocDetect();return}
+                if(text.trim().length<5){addBot('Please enter a more specific location.',undefined,{showLocBtn:true});return}
+                
+                const typedCityMatch = CITIES.find(c=>text.toLowerCase().includes(c.toLowerCase())) || 'Mumbai'
+                data={...data, location:text.trim(), city:typedCityMatch}; setProgress(4); step=4
+                addBot(`📍 ${text.trim()}\n\n🏢 Any nearby landmark? (Optional)`,['Skip'],{showPhotoBtn:!data.photo})
+                return
+            }
+            if(step===4){
+                if(lower.includes('photo')||lower.includes('upload')){fileInp.click();return}
+                const lm=(lower==='skip'||lower==='none')?'Not specified':(text.trim()||'Not specified')
+                data={...data,landmark:lm}; step=5
+                if(data.photo) addBot(`🏢 ${lm}\n📸 Photo attached!\n\nReady to submit.`,['Submit Report'])
+                else addBot(`🏢 ${lm}\n\n📸 Add a photo? Reports with photos are 3× more likely to be resolved!`,['Yes, add photo','Skip & Submit'])
+                return
+            }
+            if(step===5){
+                if(lower.includes('photo')||lower.includes('yes, add')){fileInp.click();return}
+                if(lower.includes('submit')||lower.includes('skip')||lower.includes('done')||lower.includes('continue')) submitReport(data.landmark||'Not specified')
+                else if(text.trim().length>5) submitReport(text.trim())
+                else submitReport('Not specified')
+            }
+        }
+
+        async function handleSend(override) {
+            const text=(override||inputEl.value||'').trim(); if(!text) return
+            inputEl.value=''; addUser(text); showTyping()
+            await new Promise(r=>setTimeout(r,480)); hideTyping()
+            const lower=text.toLowerCase()
+            // Login gate — block everything if not logged in
+            if (!getUser()) {
+                if (lower.includes('sign in') || lower.includes('login') || lower.includes('साइन') || lower.includes('ਸਾਈਨ')) {
+                    addBot('Please visit the login page to sign in to your CivicEye account.', ['Close'])
+                } else {
+                    addBot(T().loginRequired, [T().loginBtn])
+                }
+                return
+            }
+            if(step!==0||detectCat(text)){handleReportStep(text);return}
+            if(lower.includes('submit')&&lower.includes('report')){
+                const draft=localStorage.getItem(PREFIX+'draft_report'),u=getUser()
+                if(draft&&u){data=JSON.parse(draft);localStorage.removeItem(PREFIX+'draft_report');submitReport(data.landmark||'Not specified');return}
+            }
+            if(/^(hi|hello|hey|namaste)$/.test(lower)){addBot(`Namaste. ${T().greeting}`,['Report an issue','My Civic Points','Help'])}
+            else if(lower.includes('report')||lower.includes('issue')||lower.includes('problem')){
+                addBot(T().reportPrompt+' Pothole, Streetlight, Waste, Water Leak, Road, Drainage',['Pothole','Streetlight','Waste','Water Leak'])
+                step=0; setProgress(1)
+            } else if(lower.includes('points')||lower.includes('civic')){
+                const u=getUser(),pts=u?.points||0
+                const badge=pts<100?'Bronze':pts<500?'Silver':pts<1000?'Gold':'Diamond'
+                addBot(`${T().points}: ${pts}\n${T().pointsLabel}: ${badge}\n\n${T().earn}\nSubmit: +10 | Verified: +25 | Resolved: +50`,['Report an issue'])
+            } else if(lower.includes('help')||lower.includes('what can')){
+                addBot(T().helpText,['Report an issue','My points'])
+            } else if(lower.includes('thank')){ addBot(T().thanks,['Report an issue']) }
+            else if(lower.includes('bye')||lower.includes('goodbye')){ addBot(T().bye,['Report an issue']) }
+            else { addBot(T().unknown,['Report an issue','Help']) }
+        }
+    })()
+    </script>
+    <!-- ═══════════ END CIVICBOT ═══════════ -->
+
     <button class="fab" id="fabBtn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
             stroke-linecap="round">
@@ -6344,7 +6736,7 @@
             const proof = R.filter(x => x.status === 'Resolved').map(x => ({
                 id: x.id, title: x.title, location: x.location, resolvedDate: Math.floor((Date.now() - new Date(x.updatedAt || x.submittedAt)) / 864e5) + 'd ago',
                 bg1: x.imgGrad || 'linear-gradient(135deg,#0a0a0a,#1a1a1a)', bg2: 'linear-gradient(135deg,#003018,#005028)',
-                note: 'Issue confirmed resolved by the assigned municipal department.', col: x.col || '#22c55e', ico: TICO[x.type] || TICO.pothole, img: x.imgUrl
+                note: x.resolutionNote || 'Issue confirmed resolved by the assigned municipal department.', col: x.col || '#22c55e', ico: TICO[x.type] || TICO.pothole, img: x.imgUrl, imgAfter: x.proofAfterUrl
             })).slice(0, 4)
 
             document.getElementById('anGrid').innerHTML = `
@@ -6490,10 +6882,11 @@
           <div style="width:28px;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;border-left:.5px solid var(--b);border-right:.5px solid var(--b)">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
-          <div style="flex:1;background:${p.bg2};display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:relative">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${p.col}" stroke-width="2" stroke-linecap="round" opacity=".75"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <div style="font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${p.col};opacity:.85">FIXED</div>
-            <div style="position:absolute;inset:0;background:linear-gradient(to left,transparent 65%,rgba(0,0,0,.4))"></div>
+          <div style="flex:1;background:${p.bg2};display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;position:relative;overflow:hidden">
+            ${p.imgAfter ? `<img src="${p.imgAfter}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:.7"/>` : ''}
+            <div style="position:relative;z-index:1;opacity:.75;color:${p.col}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div style="position:relative;z-index:1;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${p.col};opacity:.85">FIXED</div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to left,transparent 65%,rgba(0,0,0,.4));z-index:0"></div>
           </div>
         </div>
         <div style="padding:12px 14px">

@@ -122,8 +122,12 @@
     const ico = TICO[r.type] || TICO.pothole
     const age = relativeTime(r.submittedAt)
     const isOverdue = r.dueDate && new Date(r.dueDate) < new Date() && r.status !== 'Resolved'
+    const imgSrc = r.imageUrl || r.imgUrl || null
     return `<div class="rc ${r.sev === 'critical' ? 'sev-critical' : r.sev === 'high' ? 'sev-high' : ''} rv" data-report-id="${r.id}">
-      <div class="rc-photo"><div class="rc-photo-inner" style="background:${r.imgGrad};width:100%;height:100%"></div>
+      <div class="rc-photo" style="position:relative;overflow:hidden">
+        <div class="rc-photo-inner" style="background:${r.imgGrad || 'linear-gradient(135deg,#0a0a0a,#1a1a1a)'};width:100%;height:100%;position:relative">
+          ${imgSrc ? `<img src="${imgSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85"/>` : ''}
+        </div>
         <div class="rc-overlay"></div>
         <div class="rc-photo-badges">
           <span class="rc-sev sev-${r.sev}">${r.sev}</span>
@@ -267,6 +271,18 @@
     }
   }
 
+  // ── Helper: read file as base64 ─────────────────────────────────────────────
+  function readFileAsBase64(fileInput) {
+    return new Promise((resolve) => {
+      const file = fileInput?.files?.[0]
+      if (!file) return resolve(null)
+      const reader = new FileReader()
+      reader.onload = e => resolve(e.target.result)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(file)
+    })
+  }
+
   // ── Override proof modal submit ───────────────────────────────────────────────
   function wireProofModal() {
     const submitBtn = document.getElementById('proofSubmitBtn')
@@ -274,6 +290,43 @@
     // Remove existing listener by cloning
     const fresh = submitBtn.cloneNode(true)
     submitBtn.parentNode.replaceChild(fresh, submitBtn)
+
+    // Wire up image zones for preview
+    function wireZone(zoneId, fileId) {
+      const oldZone = document.getElementById(zoneId)
+      if (!oldZone) return
+      
+      // Clone zone to strip existing problematic officer.html event listeners
+      const zone = oldZone.cloneNode(true)
+      oldZone.parentNode.replaceChild(zone, oldZone)
+
+      const fileIn = document.getElementById(fileId)
+      if (!fileIn) return
+      zone.style.cursor = 'pointer'
+      zone.addEventListener('click', (e) => {
+        if (e.target !== fileIn) {
+          fileIn.click()
+        }
+      })
+      fileIn.addEventListener('change', () => {
+        const file = fileIn.files?.[0]; if (!file) return
+        const reader = new FileReader()
+        reader.onload = e => {
+          let img = zone.querySelector('.preview-img')
+          if (!img) {
+            img = document.createElement('img')
+            img.className = 'preview-img'
+            img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px;opacity:.9;z-index:2'
+            zone.style.position = 'relative'
+            zone.appendChild(img)
+          }
+          img.src = e.target.result
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+    wireZone('baBeforeZone', 'baBeforeFile')
+    wireZone('baAfterZone', 'baAfterFile')
 
     fresh.addEventListener('click', async () => {
       const note = document.getElementById('proofNote')?.value
@@ -284,20 +337,35 @@
       const reportId = document.getElementById('proofModalBg')?.dataset?.reportId
       if (!reportId) { if (window.toast) window.toast('No report selected'); return }
 
-      fresh.textContent = 'Submitting…'
+      fresh.textContent = 'Uploading files…'
       fresh.disabled = true
+
       try {
+        const [proofBeforeUrl, proofAfterUrl] = await Promise.all([
+          readFileAsBase64(document.getElementById('baBeforeFile')),
+          readFileAsBase64(document.getElementById('baAfterFile'))
+        ])
+
+        fresh.textContent = 'Submitting…'
         await updateReportStatus(reportId, {
           status,
           assignedTo: engineer || undefined,
           resolutionNote: note,
           dueDate: dateVal || undefined,
+          proofBeforeUrl: proofBeforeUrl || undefined,
+          proofAfterUrl: proofAfterUrl || undefined,
         })
         document.getElementById('proofModalBg')?.classList.remove('open')
         renderFeedFromBackend()
         buildSlaListFromBackend()
         await loadStats()
         if (window.toast) window.toast('Resolution proof submitted — citizens notified!')
+        
+        // Clear files for next time
+        document.getElementById('baBeforeFile').value = ''
+        document.getElementById('baAfterFile').value = ''
+        document.querySelectorAll('.preview-img').forEach(el => el.remove())
+
       } catch (e) {
         if (window.toast) window.toast('Error: ' + e.message)
       }
@@ -319,6 +387,26 @@
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0]
       const noteEl = document.getElementById('proofNote')
       if (noteEl) noteEl.value = ''
+      
+      // Reset previews and inputs
+      document.getElementById('baBeforeFile').value = ''
+      document.getElementById('baAfterFile').value = ''
+      document.querySelectorAll('.preview-img').forEach(el => el.remove())
+
+      // Pre-fill "Before" image automatically
+      const src = r.imageUrl || r.imgUrl || r.image_url
+      if (src) {
+        const bz = document.getElementById('baBeforeZone')
+        if (bz) {
+          let img = document.createElement('img')
+          img.className = 'preview-img'
+          img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px;opacity:.9;z-index:2'
+          img.src = src
+          bz.style.position = 'relative'
+          bz.appendChild(img)
+        }
+      }
+
       bg.classList.add('open')
     }
   }
