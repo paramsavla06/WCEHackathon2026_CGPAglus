@@ -26,3 +26,8 @@ dist-ssr
 # Backend
 server/civiceye.db
 server/node_modules
+server/uploads
+server/.env
+.env
+.env.local
+.env.production
