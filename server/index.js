@@ -456,8 +456,9 @@ app.post('/api/reports', auth, (req, res) => {
   const { type, label, title, description, location, city, lat, lng, sev, imageUrl, imgUrl, bg, col, imgGrad } = req.body
   if (!type || !title) return res.status(400).json({ error: 'type and title are required' })
 
-  const existingCount = db.prepare('SELECT COUNT(*) as c FROM reports').get().c
-  const reportId = 'CE-' + (2870 + existingCount + Math.floor(Math.random() * 10))
+  const maxObj = db.prepare("SELECT MAX(CAST(SUBSTR(id, 4) AS INTEGER)) as max_id FROM reports WHERE id LIKE 'CE-%'").get()
+  const nextNum = (maxObj.max_id || 2870) + 1
+  const reportId = 'CE-' + nextNum
 
   db.prepare(`
     INSERT INTO reports (id, user_id, type, label, title, description, location, city, lat, lng, sev, image_url, bg, col, img_grad)
