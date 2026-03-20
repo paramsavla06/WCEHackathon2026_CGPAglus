@@ -3969,19 +3969,20 @@
 
     @media (max-width: 768px) {
         /* ── Top Nav ── */
-        .topnav { padding: 0 14px; height: 52px; }
+        .topnav { padding: 10px 14px 6px; height: auto; flex-wrap: wrap; overflow: hidden; }
+        .tn-logo { flex-shrink: 0; }
         .tn-logo span { display: none; }
-        .tn-nav { gap: 1px; }
+        .tn-right { flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 5px; }
+        .tn-nav { width: 100%; order: 3; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-top: 10px; margin-top: 8px; border-top: 1px solid var(--b2); justify-content: flex-start; gap: 8px; flex-shrink: 0; }
+        .tn-nav::-webkit-scrollbar { display: none; }
         .tn-tab { padding: 4px 8px; font-size: 9.5px; }
-        .tn-right { gap: 5px; }
         .tn-ib { width: 28px; height: 28px; }
-        .tn-new { padding: 5px 10px; font-size: 11px; }
-        .tn-new span:not(:first-child) { display: none; }
+        .tn-new { padding: 5px 10px; font-size: 11px; flex-shrink: 0; }
 
-        /* ── Gov bar ── */
-        .db-govbar { padding: 4px 12px; font-size: 9px; overflow-x: auto; flex-wrap: nowrap; }
-        .db-gb-right { display: none; }
-        .db-fz-grp, .db-cs-grp { display: none; }
+        /* ── Hide Gov headers on mobile ── */
+        .db-helpline,
+        .db-govbar,
+        .db-breadcrumb { display: none !important; }
 
         /* ── Main layout ── */
         .db-col2 { flex-direction: column !important; height: auto !important; overflow: visible !important; }

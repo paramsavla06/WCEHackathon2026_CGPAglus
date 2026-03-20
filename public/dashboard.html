@@ -5009,16 +5009,40 @@
 
             /* ── Top Nav ── */
             .topnav {
-                padding: 0 14px;
-                height: 52px;
+                padding: 10px 14px 6px;
+                height: auto;
+                flex-wrap: wrap;
+                overflow: hidden;
+            }
+
+            .tn-logo {
+                flex-shrink: 0;
             }
 
             .tn-logo span {
                 display: none;
             }
 
+            .tn-right {
+                flex-shrink: 0;
+                margin-left: auto;
+            }
+
             .tn-nav {
-                gap: 1px;
+                width: 100%;
+                order: 3;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-top: 10px;
+                margin-top: 8px;
+                border-top: 1px solid var(--b2);
+                justify-content: flex-start;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            
+            .tn-nav::-webkit-scrollbar {
+                display: none;
             }
 
             .tn-tab {
@@ -5033,6 +5057,12 @@
             .tn-new {
                 padding: 5px 10px;
                 font-size: 11px;
+                flex-shrink: 0;
+            }
+
+            .tn-right {
+                flex-shrink: 0;
+                margin-left: auto;
             }
 
             .tn-ib {
@@ -5040,16 +5070,11 @@
                 height: 28px;
             }
 
-            /* ── Gov accessibility bar ── */
-            .db-govbar {
-                flex-wrap: nowrap;
-                padding: 4px 12px;
-                overflow-x: auto;
-                font-size: 9.5px;
-            }
-
-            .db-gb-right {
-                display: none;
+            /* ── Hide Gov headers on mobile ── */
+            .db-helpline,
+            .db-govbar,
+            .db-breadcrumb {
+                display: none !important;
             }
 
             /* ── Dashboard page layout ── */
@@ -5079,19 +5104,21 @@
             }
 
             /* Page 1 — Dashboard two-column → single */
-            .db-col2 {
+            .body-grid {
                 flex-direction: column !important;
                 height: auto !important;
                 overflow: visible !important;
+                display: flex !important; /* Switch from grid to flex column on mobile */
             }
 
             .feed-col {
                 width: 100% !important;
                 overflow-y: visible !important;
                 height: auto !important;
+                border-right: none !important;
             }
 
-            .right-col {
+            .user-col {
                 width: 100% !important;
                 height: auto !important;
                 overflow-y: visible !important;
@@ -5209,10 +5236,16 @@
 
             /* CivicBot FAB — don't overlap nav */
             #cbFab {
-                bottom: 16px !important;
-                right: 16px !important;
+                bottom: 24px !important;
+                right: 24px !important;
                 width: 48px !important;
                 height: 48px !important;
+                z-index: 1001 !important;
+            }
+            
+            /* Move any new report FAB up if it exists dynamically */
+            .fab {
+                bottom: 84px !important;
             }
 
             /* Feedback tab */
@@ -5594,7 +5627,7 @@
         <nav class="topnav">
             <div class="tn-logo">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" class="tn-emblem"
-                    alt="Emblem of India">CivicEye
+                    alt="Emblem of India"><span>CivicEye</span>
             </div>
             <div class="tn-nav">
                 <button class="tn-tab on" data-p="dashboard">Dashboard</button>
@@ -5628,7 +5661,7 @@
                 <div class="tn-av" id="tnAv">AS</div>
                 <button class="tn-new" id="logoutBtn"
                     style="background:transparent;border:1px solid var(--b2);color:var(--txt)">
-                    Logout
+                    <span>Logout</span>
                 </button>
                 <button class="tn-new" id="btnNew">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -5636,7 +5669,7 @@
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    New Report
+                    <span>New Report</span>
                 </button>
             </div>
         </nav>
