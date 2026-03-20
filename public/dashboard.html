@@ -274,13 +274,21 @@
             transition: color .4s
         }
 
-        .tn-pip {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--saffron);
-            box-shadow: 0 0 10px var(--saffron);
+        .tn-emblem {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px var(--saffron));
+            transition: filter .4s;
             flex-shrink: 0
+        }
+
+        [data-theme="dark"] .tn-emblem {
+            filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.4));
+        }
+
+        [data-theme="light"] .tn-emblem {
+            filter: drop-shadow(0 0 5px rgba(255,153,51,0.3));
         }
 
         .tn-nav {
@@ -5187,7 +5195,7 @@
         <!-- ══ TOP NAV ══ -->
         <nav class="topnav">
             <div class="tn-logo">
-                <div class="tn-pip"></div>CivicEye
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" class="tn-emblem" alt="Emblem of India">CivicEye
             </div>
             <div class="tn-nav">
                 <button class="tn-tab on" data-p="dashboard">Dashboard</button>
@@ -5993,6 +6001,14 @@
             document.getElementById('p-' + id).classList.add('active')
             document.querySelectorAll('.tn-tab').forEach(t => t.classList.toggle('on', t.dataset.p === id))
             setTimeout(rev, 100)
+            
+            const fabBtn = document.getElementById('fabBtn')
+            if (fabBtn) fabBtn.style.display = id === 'report' ? 'none' : 'flex'
+            const cbFab = document.getElementById('cbFab')
+            if (cbFab) cbFab.style.display = id === 'report' ? 'none' : 'flex'
+            const cbWin = document.getElementById('cbWindow')
+            if (cbWin && id === 'report') cbWin.style.display = 'none'
+
             if (id === 'analytics') buildAnalytics()
             if (id === 'heatmap') { buildHeatmap(); buildLeaderboard() }
             if (id === 'report') buildReport()
@@ -6986,26 +7002,26 @@
            PAGE 4 — HEATMAP
         ════════════════════════════════ */
         const ZONES_HM = [
-            { n: 'Borivali', x: 14, y: 7, w: 70, h: 50, issues: 8, sev: { low: 3, medium: 3, high: 2, critical: 0 } },
-            { n: 'Dahisar', x: 25, y: 6, w: 65, h: 45, issues: 5, sev: { low: 2, medium: 2, high: 1, critical: 0 } },
-            { n: 'Kandivali', x: 33, y: 10, w: 70, h: 50, issues: 11, sev: { low: 2, medium: 4, high: 4, critical: 1 } },
-            { n: 'Malad', x: 20, y: 17, w: 65, h: 45, issues: 14, sev: { low: 2, medium: 5, high: 5, critical: 2 } },
-            { n: 'Goregaon', x: 32, y: 17, w: 68, h: 48, issues: 9, sev: { low: 2, medium: 4, high: 3, critical: 0 } },
-            { n: 'Jogeshwari', x: 22, y: 26, w: 65, h: 46, issues: 7, sev: { low: 1, medium: 3, high: 3, critical: 0 } },
-            { n: 'Andheri', x: 37, y: 23, w: 72, h: 52, issues: 22, sev: { low: 3, medium: 7, high: 8, critical: 4 } },
-            { n: 'Vile Parle', x: 43, y: 31, w: 68, h: 48, issues: 13, sev: { low: 2, medium: 5, high: 5, critical: 1 } },
-            { n: 'Santacruz', x: 46, y: 37, w: 65, h: 46, issues: 10, sev: { low: 2, medium: 4, high: 3, critical: 1 } },
-            { n: 'Khar', x: 40, y: 44, w: 62, h: 44, issues: 8, sev: { low: 2, medium: 3, high: 3, critical: 0 } },
-            { n: 'Bandra', x: 44, y: 50, w: 68, h: 48, issues: 18, sev: { low: 2, medium: 6, high: 7, critical: 3 } },
-            { n: 'Mahim', x: 48, y: 56, w: 62, h: 44, issues: 12, sev: { low: 1, medium: 4, high: 5, critical: 2 } },
-            { n: 'Dadar', x: 52, y: 60, w: 65, h: 46, issues: 16, sev: { low: 2, medium: 5, high: 6, critical: 3 } },
-            { n: 'Parel', x: 56, y: 65, w: 62, h: 44, issues: 14, sev: { low: 1, medium: 4, high: 6, critical: 3 } },
-            { n: 'Worli', x: 49, y: 70, w: 65, h: 46, issues: 11, sev: { low: 2, medium: 3, high: 4, critical: 2 } },
-            { n: 'Matunga', x: 58, y: 62, w: 65, h: 46, issues: 9, sev: { low: 2, medium: 3, high: 3, critical: 1 } },
-            { n: 'Sion', x: 62, y: 58, w: 60, h: 42, issues: 7, sev: { low: 2, medium: 3, high: 2, critical: 0 } },
-            { n: 'Kurla', x: 67, y: 52, w: 65, h: 46, issues: 19, sev: { low: 2, medium: 6, high: 8, critical: 3 } },
-            { n: 'Ghatkopar', x: 73, y: 45, w: 68, h: 48, issues: 15, sev: { low: 2, medium: 5, high: 6, critical: 2 } },
-            { n: 'Mulund', x: 78, y: 35, w: 62, h: 44, issues: 6, sev: { low: 2, medium: 2, high: 2, critical: 0 } },
+            { n: 'Borivali', x: 14, y: 7, issues: 8, sev: { low: 8, medium: 0, high: 0, critical: 0 } },
+            { n: 'Dahisar', x: 25, y: 6, issues: 5, sev: { low: 5, medium: 0, high: 0, critical: 0 } },
+            { n: 'Kandivali', x: 33, y: 10, issues: 11, sev: { low: 0, medium: 11, high: 0, critical: 0 } },
+            { n: 'Malad', x: 20, y: 17, issues: 14, sev: { low: 0, medium: 0, high: 14, critical: 0 } },
+            { n: 'Goregaon', x: 32, y: 17, issues: 9, sev: { low: 0, medium: 0, high: 0, critical: 9 } },
+            { n: 'Jogeshwari', x: 22, y: 26, issues: 7, sev: { low: 3, medium: 4, high: 0, critical: 0 } },
+            { n: 'Andheri', x: 37, y: 23, issues: 22, sev: { low: 0, medium: 0, high: 22, critical: 0 } },
+            { n: 'Vile Parle', x: 43, y: 31, issues: 13, sev: { low: 0, medium: 13, high: 0, critical: 0 } },
+            { n: 'Santacruz', x: 46, y: 37, issues: 10, sev: { low: 10, medium: 0, high: 0, critical: 0 } },
+            { n: 'Khar', x: 40, y: 44, issues: 8, sev: { low: 0, medium: 8, high: 0, critical: 0 } },
+            { n: 'Bandra', x: 44, y: 50, issues: 18, sev: { low: 0, medium: 0, high: 0, critical: 18 } },
+            { n: 'Mahim', x: 48, y: 56, issues: 12, sev: { low: 0, medium: 0, high: 12, critical: 0 } },
+            { n: 'Dadar', x: 52, y: 60, issues: 16, sev: { low: 0, medium: 16, high: 0, critical: 0 } },
+            { n: 'Parel', x: 56, y: 65, issues: 14, sev: { low: 14, medium: 0, high: 0, critical: 0 } },
+            { n: 'Worli', x: 49, y: 70, issues: 11, sev: { low: 0, medium: 0, high: 0, critical: 11 } },
+            { n: 'Matunga', x: 58, y: 62, issues: 9, sev: { low: 0, medium: 0, high: 9, critical: 0 } },
+            { n: 'Sion', x: 62, y: 58, issues: 7, sev: { low: 7, medium: 0, high: 0, critical: 0 } },
+            { n: 'Kurla', x: 67, y: 52, issues: 19, sev: { low: 0, medium: 19, high: 0, critical: 0 } },
+            { n: 'Ghatkopar', x: 73, y: 45, issues: 15, sev: { low: 0, medium: 0, high: 15, critical: 0 } },
+            { n: 'Mulund', x: 78, y: 35, issues: 6, sev: { low: 0, medium: 6, high: 0, critical: 0 } },
         ]
         const SEV_COLORS = { low: '#22c55e', medium: '#f59e0b', high: '#f97316', critical: '#f43f5e' }
         let activeSev = 'all'

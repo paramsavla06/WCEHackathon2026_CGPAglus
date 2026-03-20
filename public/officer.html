@@ -7,6 +7,7 @@
     <title>CivicEye — Government Officer Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Sora:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         *,
         *::before,
@@ -1308,13 +1309,21 @@
             transition: color .4s
         }
 
-        .tn-pip {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--ind-green);
-            box-shadow: 0 0 10px var(--ind-green);
+        .tn-emblem {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px var(--ind-green));
+            transition: filter .4s;
             flex-shrink: 0
+        }
+
+        [data-theme="dark"] .tn-emblem {
+            filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.4));
+        }
+
+        [data-theme="light"] .tn-emblem {
+            filter: drop-shadow(0 0 5px rgba(19,136,8,0.3));
         }
 
         .gov-label-nav {
@@ -2058,7 +2067,8 @@
             line-height: 1.6;
             margin-bottom: 8px;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 2; /* fallback */
+            line-clamp: 2;;
             -webkit-box-orient: vertical;
             overflow: hidden;
             transition: color .4s
@@ -2795,6 +2805,48 @@
             font-size: 10.5px;
             font-weight: 600;
             margin-top: 4px
+        }
+
+        /* timeline items for analytics */
+        .tl2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: .5px solid var(--b);
+        }
+        .tl2-ico {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .tl2-bd {
+            flex: 1;
+            min-width: 0;
+        }
+        .tl2-t {
+            font-size: 11.5px;
+            color: var(--txt);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tl2-s {
+            font-size: 9px;
+            color: var(--txt3);
+            margin-top: 2px;
+        }
+        .tl2-rhs {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px) }
+            to { opacity: 1; transform: translateY(0) }
         }
 
         .an-chart {
@@ -4191,7 +4243,9 @@
             <textarea class="pm-input" id="proofNote" rows="3"
                 placeholder="Describe what was done — e.g. Pothole filled with bitumen mix, road resurfaced 4m stretch..."></textarea>
             <label class="pm-lbl">Assigned Engineer</label>
-            <input type="text" class="pm-input" id="proofEngineer" placeholder="Name and Employee ID" />
+            <select class="pm-input" id="proofEngineer">
+                <option value="">-- Select Officer --</option>
+            </select>
             <label class="pm-lbl">Completion Date</label>
             <input type="date" class="pm-input" id="proofDate" />
             <button class="pm-submit" id="proofSubmitBtn">Submit Resolution Proof</button>
@@ -4225,7 +4279,7 @@
         <nav class="topnav">
             <div style="display:flex;align-items:center;gap:10px">
                 <div class="tn-logo">
-                    <div class="tn-pip"></div>CivicEye
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" class="tn-emblem" alt="Emblem of India">CivicEye
                 </div>
                 <div class="gov-label-nav">Officer Dashboard</div>
             </div>
@@ -4600,6 +4654,7 @@
         </div>
 
     </div><!-- /shell -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script>
         /* ════ CURSOR ════ */
@@ -4615,8 +4670,9 @@
         function toast(m, dur = 2800) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur) }
 
         /* ════ REVEAL ════ */
-        function rev() { document.querySelectorAll('.rv').forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight * .98) el.classList.add('in') }) }
+        function rev() { document.querySelectorAll('.rv:not(.in)').forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight * .98) el.classList.add('in') }) }
         window.addEventListener('scroll', rev, { passive: true })
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(() => document.querySelectorAll('.feed-col,.right-col,.an-grid,.rep-table-scroll,.team-page-grid,.hm-col,.hm-right').forEach(el => el.addEventListener('scroll', rev, { passive: true })), 100) })
 
         /* ════ THEME ════ */
         let dark = true
@@ -4678,7 +4734,7 @@
         const SEV_COLOR = { critical: '#f43f5e', high: '#f97316', medium: '#f59e0b', low: '#22c55e' }
         const SEV_BG = { critical: 'rgba(244,63,94,.13)', high: 'rgba(249,115,22,.12)', medium: 'rgba(245,158,11,.12)', low: 'rgba(34,197,94,.12)' }
 
-        const REPORTS = [
+        var REPORTS = [
             { id: 'CE-2960', type: 'drain', title: 'Flooded underpass — Andheri East', desc: 'Complete flooding — traffic diverted, 3 businesses inaccessible. Monsoon drain blocked.', location: 'Andheri East Station Road', sev: 'critical', status: 'Submitted', votes: 87, col: '#6ee7b7', bg: 'rgba(110,231,183,.1)', imgGrad: 'linear-gradient(135deg,#001510,#002820)', age: '45 min ago', assignedTo: null, dueDate: 'Today', overdue: true },
             { id: 'CE-2958', type: 'pothole', title: 'Road collapse near school', desc: 'Large section of tarmac collapsed near Vidyamandir School. Students at risk.', location: 'Vidyamandir Marg, Dadar', sev: 'critical', status: 'Assigned', votes: 64, col: '#f59e0b', bg: 'rgba(245,158,11,.1)', imgGrad: 'linear-gradient(135deg,#1a1200,#2e2000)', age: '2h ago', assignedTo: 'Sunil Patil', dueDate: 'Today', overdue: false },
             { id: 'CE-2955', type: 'light', title: '8 consecutive streetlights out', desc: 'Entire stretch dark from bus stop to railway bridge. Night accidents reported.', location: 'SV Road, Malad West', sev: 'high', status: 'Verified', votes: 41, col: '#3d7fff', bg: 'rgba(61,127,255,.1)', imgGrad: 'linear-gradient(135deg,#00102a,#001f4d)', age: '4h ago', assignedTo: null, dueDate: 'Tomorrow', overdue: false },
@@ -4693,7 +4749,7 @@
             { id: 'CE-2804', type: 'road', title: 'Road collapse — waterlogging', desc: 'Section of road collapsed due to waterlogging. 4m wide, 1m deep.', location: 'Powai Lake Road, Andheri', sev: 'critical', status: 'Resolved', votes: 71, col: '#f43f5e', bg: 'rgba(244,63,94,.1)', imgGrad: 'linear-gradient(135deg,#1a0010,#2e0018)', age: '18 days ago', assignedTo: 'Anil Sharma', dueDate: '—', overdue: false },
         ]
 
-        const TEAM = [
+        var TEAM = [
             { name: 'Sunil Patil', role: 'Field Engineer', av: 'SP', col: '#3d7fff', assigned: 4, resolved: 12, load: 80 },
             { name: 'Rekha More', role: 'Infrastructure Officer', av: 'RM', col: '#f59e0b', assigned: 3, resolved: 9, load: 60 },
             { name: 'Anil Sharma', role: 'Senior Engineer', av: 'AS', col: '#22c55e', assigned: 2, resolved: 18, load: 40 },
@@ -4932,7 +4988,7 @@
                     { v: critical, l: 'Critical', sub: 'Immediate action', col: 'var(--red)', ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>` },
                     { v: overdue, l: 'Overdue SLA', sub: 'Past deadline', col: '#f97316', ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5l3 3"/></svg>` },
                     { v: '3.2d', l: 'Avg Resolution', sub: 'City avg: 14d', col: 'var(--blue)', ico: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>` },
-                ].map((k, i) => `<div class="an-kpi rv" style="--kpi-col:${k.col};transition-delay:${i * .05}s">
+                ].map((k, i) => `<div class="an-kpi" style="--kpi-col:${k.col}">
       <div class="kpi-ico" style="background:color-mix(in srgb,${k.col} 12%,transparent)">${k.ico}</div>
       <div class="kpi-val">${k.v}</div><div class="kpi-lbl">${k.l}</div>
       <div class="kpi-sub" style="color:${k.col}">${k.sub}</div>
@@ -4940,7 +4996,7 @@
   </div>
 
   <!-- Weekly bar chart -->
-  <div class="an-chart an-c8 rv" style="transition-delay:.06s">
+  <div class="an-chart an-c8">
     <div class="an-ch-head"><div><div class="an-ch-title">Weekly Reports Filed</div><div class="an-ch-sub">Last 8 weeks · Zone 4</div></div><span style="font-size:10px;color:var(--txt3)">${weekData.reduce((a, b) => a + b, 0)} total</span></div>
     <div class="an-ch-body"><div class="bar-grid">
       ${weekData.map((v, i) => { const h = Math.max(4, (v / maxW) * 108); const isLast = i === weekData.length - 1; return `<div class="bar-col2"><div class="bar2" style="height:${h}px;background:${isLast ? 'var(--ind-green)' : `rgba(19,136,8,${.18 + i * .1})`};animation:barRise .7s ${i * .07}s cubic-bezier(.22,1,.36,1) both" data-tip="${v} reports"></div><div class="b-lbl">W${i + 1}</div></div>` }).join('')}
@@ -4948,7 +5004,7 @@
   </div>
 
   <!-- Type donut -->
-  <div class="an-chart an-c4 rv" style="transition-delay:.09s">
+  <div class="an-chart an-c4">
     <div class="an-ch-head"><div><div class="an-ch-title">Issue Types</div><div class="an-ch-sub">All reports</div></div></div>
     <div class="an-ch-body"><div class="donut-wrap">
       <div class="donut-center">
@@ -4960,7 +5016,7 @@
   </div>
 
   <!-- SLA compliance -->
-  <div class="an-chart an-c6 rv" style="transition-delay:.12s">
+  <div class="an-chart an-c6">
     <div class="an-ch-head"><div><div class="an-ch-title">SLA Compliance by Type</div><div class="an-ch-sub">% resolved within deadline</div></div></div>
     <div class="an-ch-body">
       ${[{ n: 'Water / Drainage', r: 92, c: '#2dd4bf' }, { n: 'Streetlight', r: 85, c: '#3d7fff' }, { n: 'Waste', r: 78, c: '#34d399' }, { n: 'Pothole / Road', r: 64, c: '#f59e0b' }, { n: 'Parks', r: 70, c: '#a78bfa' }].map(d => `<div class="phbar-row"><div class="phbar-lbl">${d.n}</div><div class="phbar-track"><div class="phbar-fill" style="width:0%;background:${d.c}" data-w="${d.r}"></div></div><div class="phbar-val">${d.r}%</div></div>`).join('')}
@@ -4968,7 +5024,7 @@
   </div>
 
   <!-- Team performance -->
-  <div class="an-chart an-c6 rv" style="transition-delay:.14s">
+  <div class="an-chart an-c6">
     <div class="an-ch-head"><div><div class="an-ch-title">Team Performance</div><div class="an-ch-sub">Reports resolved this month</div></div></div>
     <div class="an-ch-body">
       ${TEAM.map(m => `<div class="phbar-row"><div class="phbar-lbl">${m.name.split(' ')[0]}</div><div class="phbar-track"><div class="phbar-fill" style="width:0%;background:${m.col}" data-w="${Math.round(m.resolved / 20 * 100)}"></div></div><div class="phbar-val">${m.resolved}</div></div>`).join('')}
@@ -4976,7 +5032,7 @@
   </div>
 
   <!-- Resolution timeline -->
-  <div class="an-chart an-c1 rv" style="transition-delay:.16s">
+  <div class="an-chart an-c1">
     <div class="an-ch-head"><div><div class="an-ch-title">Recent Activity</div><div class="an-ch-sub">Latest report updates</div></div></div>
     <div style="padding:6px 16px 14px">
       ${REPORTS.slice(0, 6).map((r, ri) => { const sm = SM[r.status] || SM['Submitted'], ico = TICO[r.type] || TICO.pothole; return `<div class="tl2" style="animation:fadeUp .5s ${ri * .06}s ease both"><div class="tl2-ico" style="background:${r.bg};color:${r.col}">${ico}</div><div class="tl2-bd"><div class="tl2-t">${r.title}</div><div class="tl2-s">${r.location} · ${r.id}${r.assignedTo ? ' · ' + r.assignedTo : ''}</div></div><div class="tl2-rhs"><div class="rc-st" style="background:${sm.bg};color:${sm.col}">${r.status}</div><div style="font-size:9px;color:var(--txt3);margin-top:3px">${r.age}</div></div></div>` }).join('')}
@@ -4986,23 +5042,31 @@
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 document.querySelectorAll('.phbar-fill[data-w],.dl2-bar[data-w]').forEach(el => { el.style.transition = 'width 1.1s cubic-bezier(.4,0,.2,1)'; el.style.width = el.dataset.w + '%' })
             }))
-            setTimeout(rev, 100); ah('.an-kpi,.tl2')
+            ah('.an-kpi,.tl2')
         }
 
         /* ════ HEATMAP ════ */
         const ZONES_HM = [
-            { n: 'Borivali', x: 13, y: 7, w: 68, h: 46, issues: 8, sev: { low: 3, medium: 3, high: 2, critical: 0 } },
-            { n: 'Kandivali', x: 32, y: 10, w: 68, h: 46, issues: 11, sev: { low: 2, medium: 4, high: 4, critical: 1 } },
-            { n: 'Malad', x: 20, y: 17, w: 65, h: 44, issues: 14, sev: { low: 2, medium: 5, high: 5, critical: 2 } },
-            { n: 'Goregaon', x: 31, y: 17, w: 66, h: 44, issues: 9, sev: { low: 2, medium: 4, high: 3, critical: 0 } },
-            { n: 'Andheri', x: 37, y: 24, w: 70, h: 48, issues: 22, sev: { low: 3, medium: 7, high: 8, critical: 4 } },
-            { n: 'Vile Parle', x: 43, y: 32, w: 65, h: 44, issues: 13, sev: { low: 2, medium: 5, high: 5, critical: 1 } },
-            { n: 'Bandra', x: 44, y: 50, w: 66, h: 45, issues: 18, sev: { low: 2, medium: 6, high: 7, critical: 3 } },
-            { n: 'Dadar', x: 52, y: 60, w: 63, h: 43, issues: 16, sev: { low: 2, medium: 5, high: 6, critical: 3 } },
-            { n: 'Kurla', x: 67, y: 53, w: 63, h: 43, issues: 19, sev: { low: 2, medium: 6, high: 8, critical: 3 } },
-            { n: 'Ghatkopar', x: 73, y: 44, w: 65, h: 44, issues: 15, sev: { low: 2, medium: 5, high: 6, critical: 2 } },
-            { n: 'Worli', x: 49, y: 70, w: 63, h: 43, issues: 11, sev: { low: 2, medium: 3, high: 4, critical: 2 } },
-            { n: 'Mulund', x: 78, y: 34, w: 60, h: 41, issues: 6, sev: { low: 2, medium: 2, high: 2, critical: 0 } },
+            { n: 'Borivali', x: 14, y: 7, issues: 8, sev: { low: 8, medium: 0, high: 0, critical: 0 } },
+            { n: 'Dahisar', x: 25, y: 6, issues: 5, sev: { low: 5, medium: 0, high: 0, critical: 0 } },
+            { n: 'Kandivali', x: 33, y: 10, issues: 11, sev: { low: 0, medium: 11, high: 0, critical: 0 } },
+            { n: 'Malad', x: 20, y: 17, issues: 14, sev: { low: 0, medium: 0, high: 14, critical: 0 } },
+            { n: 'Goregaon', x: 32, y: 17, issues: 9, sev: { low: 0, medium: 0, high: 0, critical: 9 } },
+            { n: 'Jogeshwari', x: 22, y: 26, issues: 7, sev: { low: 3, medium: 4, high: 0, critical: 0 } },
+            { n: 'Andheri', x: 37, y: 23, issues: 22, sev: { low: 0, medium: 0, high: 22, critical: 0 } },
+            { n: 'Vile Parle', x: 43, y: 31, issues: 13, sev: { low: 0, medium: 13, high: 0, critical: 0 } },
+            { n: 'Santacruz', x: 46, y: 37, issues: 10, sev: { low: 10, medium: 0, high: 0, critical: 0 } },
+            { n: 'Khar', x: 40, y: 44, issues: 8, sev: { low: 0, medium: 8, high: 0, critical: 0 } },
+            { n: 'Bandra', x: 44, y: 50, issues: 18, sev: { low: 0, medium: 0, high: 0, critical: 18 } },
+            { n: 'Mahim', x: 48, y: 56, issues: 12, sev: { low: 0, medium: 0, high: 12, critical: 0 } },
+            { n: 'Dadar', x: 52, y: 60, issues: 16, sev: { low: 0, medium: 16, high: 0, critical: 0 } },
+            { n: 'Parel', x: 56, y: 65, issues: 14, sev: { low: 14, medium: 0, high: 0, critical: 0 } },
+            { n: 'Worli', x: 49, y: 70, issues: 11, sev: { low: 0, medium: 0, high: 0, critical: 11 } },
+            { n: 'Matunga', x: 58, y: 62, issues: 9, sev: { low: 0, medium: 0, high: 9, critical: 0 } },
+            { n: 'Sion', x: 62, y: 58, issues: 7, sev: { low: 7, medium: 0, high: 0, critical: 0 } },
+            { n: 'Kurla', x: 67, y: 52, issues: 19, sev: { low: 0, medium: 19, high: 0, critical: 0 } },
+            { n: 'Ghatkopar', x: 73, y: 45, issues: 15, sev: { low: 0, medium: 0, high: 15, critical: 0 } },
+            { n: 'Mulund', x: 78, y: 35, issues: 6, sev: { low: 0, medium: 6, high: 0, critical: 0 } },
         ]
         let activeSev = 'all', selectedZone = null
         const SHC = { low: '#22c55e', medium: '#f59e0b', high: '#f97316', critical: '#f43f5e' }
@@ -5015,19 +5079,59 @@
         }
 
         function buildHeatmap() {
-            const map = document.getElementById('hmMap')
-            map.querySelectorAll('.hm-zone').forEach(el => el.remove())
+            const mapEl = document.getElementById('hmMap')
+            mapEl.innerHTML = '<div id="leafletMapHm" style="position:absolute;inset:0"></div>';
+
+            if (window.leafletHmInstance) {
+                window.leafletHmInstance.remove();
+            }
+
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            const tileUrl = isDark
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+            const mapMap = L.map('leafletMapHm', { zoomControl: false }).setView([19.0760, 72.8777], 11);
+            window.leafletHmInstance = mapMap;
+
+            L.tileLayer(tileUrl, {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 16
+            }).addTo(mapMap);
+            setTimeout(() => mapMap.invalidateSize(), 150)
+
             ZONES_HM.forEach(z => {
-                const { bg, cnt } = zoneColor(z), intensity = cnt / Math.max(...ZONES_HM.map(x => x.issues), 1)
-                const textCol = intensity > .55 ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.7)'
-                const el = document.createElement('div'); el.className = 'hm-zone'
-                el.style.cssText = `left:${z.x}%;top:${z.y}%;width:${z.w}px;height:${z.h}px;background:${bg}`
-                el.innerHTML = `<div class="hm-zone-inner"><div class="hm-zone-name" style="color:${textCol}">${z.n}</div><div class="hm-zone-cnt" style="color:${textCol}">${cnt}</div></div>
-    <div class="hm-zone-tip">${z.n} · ${z.issues} issues<br>${Object.entries(z.sev).filter(([, v]) => v > 0).map(([s, c]) => `<span style="color:${SHC[s]}">${s}:${c}</span>`).join(' · ')}</div>`
-                el.addEventListener('click', () => showZoneDetail(z))
-                el.addEventListener('mouseenter', () => { hin(); document.getElementById('hmSub').textContent = z.n + ': ' + z.issues + ' issues' })
-                el.addEventListener('mouseleave', hout)
-                map.appendChild(el)
+                if(activeSev !== 'all' && z.sev[activeSev] === 0) return;
+                
+                const lat = 19.3 - (z.y / 100) * 0.4;
+                const lng = 72.8 + (z.x / 100) * 0.2;
+                const { cnt } = zoneColor(z)
+                const intensity = cnt / Math.max(...ZONES_HM.map(x => x.issues), 1)
+
+                const col = activeSev !== 'all' ? SHC[activeSev] : '#ff9933';
+                const rad = Math.max(8, intensity * 25);
+                const o = Math.max(0.3, intensity * 0.8 + 0.1);
+
+                const circle = L.circleMarker([lat, lng], {
+                    radius: rad,
+                    fillColor: col,
+                    color: col,
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: o
+                }).addTo(mapMap);
+
+                const popupHtml = `
+                    <div style="font-family:'Sora',sans-serif;color:var(--txt);">
+                        <strong style="color:var(--saffron);font-size:13px">${z.n}</strong><br>
+                        <span style="font-size:11px">${z.issues} total issues</span>
+                        <div style="margin-top:6px;font-size:10px;line-height:1.5;color:var(--txt2);">
+                            ${Object.entries(z.sev).map(([s, c]) => `<span style="display:inline-block;width:50px">${s}:</span><strong style="color:${SHC[s]}">${c}</strong>`).join('<br>')}
+                        </div>
+                    </div>
+                `;
+                circle.bindTooltip(popupHtml, { direction: 'top', className: 'leaflet-custom-tooltip' });
+                circle.on('click', () => { showZoneDetail(z); document.getElementById('hmSub').textContent = z.n + ': ' + z.issues + ' issues' });
             })
         }
 
@@ -5084,10 +5188,35 @@
         <span style="font-size:10.5px;color:var(--txt2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title}</span>
         <span style="font-size:8px;font-weight:700;padding:1.5px 6px;border-radius:100px;background:${SM[r.status]?.bg};color:${SM[r.status]?.col}">${r.status}</span>
       </div>`).join('')}` : '<div style="font-size:11px;color:var(--txt3);text-align:center;padding:8px 0">No active reports</div>'}
-      <button class="tc-assign-btn" onclick="toast('Assigning next available issue to ${m.name}...')">Assign Issue →</button>
+      <button class="tc-assign-btn" onclick="autoAssignIssue('${m.name}')">Assign Issue →</button>
     </div>`
             }).join('')
             setTimeout(rev, 80); ah('.team-card,.tc-assign-btn')
+        }
+
+        async function autoAssignIssue(memberName) {
+            const availReport = REPORTS.find(r => r.status === 'Submitted' || r.status === 'Verified')
+            if(!availReport) {
+                toast('No unassigned issues available in the queue.')
+                return
+            }
+            if(window.updateReportStatus) {
+                try {
+                    toast('Assigning via backend...')
+                    await window.updateReportStatus(availReport.id, { status: 'Assigned', assignedTo: memberName })
+                    toast(availReport.id + ' successfully assigned to ' + memberName)
+                    document.getElementById('feedRefreshBtn')?.click()
+                } catch(e) { toast('Error assigning: ' + e.message) }
+            } else {
+                availReport.assignedTo = memberName
+                availReport.status = 'Assigned'
+                const t = TEAM.find(x => x.name === memberName)
+                if(t) t.assigned++
+                renderFeedPage()
+                buildTeamPage()
+                buildStats()
+                toast(availReport.id + ' assigned to ' + memberName)
+            }
         }
 
         /* ════ PROOF MODAL ════ */
@@ -5097,6 +5226,13 @@
             document.getElementById('proofReportInfo').textContent = `${r.id} · ${r.title}`
             document.getElementById('proofDate').value = new Date().toISOString().split('T')[0]
             document.getElementById('proofNote').value = ''
+            
+            const engSelect = document.getElementById('proofEngineer')
+            if(engSelect && TEAM) {
+                engSelect.innerHTML = '<option value="">-- Select Officer --</option>' + 
+                  TEAM.map(m => `<option value="${m.name}" ${r.assignedTo === m.name ? 'selected' : ''}>${m.name} (${m.role})</option>`).join('')
+            }
+            
             document.getElementById('proofModalBg').classList.add('open')
         }
         document.getElementById('proofModalClose')?.addEventListener('click', () => document.getElementById('proofModalBg').classList.remove('open'))

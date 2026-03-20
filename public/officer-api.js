@@ -258,7 +258,7 @@
   }
 
   // ── Status update via API ─────────────────────────────────────────────────────
-  async function updateReportStatus(reportId, payload) {
+  window.updateReportStatus = async function updateReportStatus(reportId, payload) {
     try {
       const updated = await apiCall('PATCH', `/api/officer/reports/${reportId}/status`, payload)
       // Patch in cache
@@ -387,6 +387,12 @@
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0]
       const noteEl = document.getElementById('proofNote')
       if (noteEl) noteEl.value = ''
+      
+      const engSelect = document.getElementById('proofEngineer')
+      if (engSelect && window.TEAM) {
+          engSelect.innerHTML = '<option value="">-- Select Officer --</option>' + 
+              window.TEAM.map(m => `<option value="${m.name}" ${r.assignedTo === m.name ? 'selected' : ''}>${m.name} (${m.role})</option>`).join('')
+      }
       
       // Reset previews and inputs
       document.getElementById('baBeforeFile').value = ''
