@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 
 const ISSUE_CATEGORIES = [
   { id: 'pothole', label: 'Pothole', icon: '', followUp: 'Can you describe the size and exact location of the pothole?' },
@@ -12,6 +13,29 @@ const ISSUE_CATEGORIES = [
 ]
 const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Other']
 const PREFIX = 'ce_'
+
+// FIX 1: Strongly typed User interface instead of `any`
+interface CivicUser {
+  name?: string
+  points?: number
+  [key: string]: unknown
+}
+
+// FIX 2: Strongly typed ReportData instead of `Record<string, any>`
+interface ReportData {
+  category?: string
+  description?: string
+  location?: string
+  city?: string
+  latitude?: number
+  longitude?: number
+  detectedAddress?: string
+  photo?: string
+  sev?: string
+  title?: string
+  landmark?: string
+  draftDate?: string
+}
 
 type Msg = {
   role: 'bot' | 'user'
@@ -27,28 +51,29 @@ export default function CivicBot() {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [inputVal, setInputVal] = useState('')
   const [reportStep, setReportStep] = useState(0)
-  const [reportData, setReportData] = useState<Record<string, any>>({})
+  const [reportData, setReportData] = useState<ReportData>({})
   const [isTyping, setIsTyping] = useState(false)
   const [isDetecting, setIsDetecting] = useState(false)
   const [progressStep, setProgressStep] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const stepRef = useRef(0)
-  const dataRef = useRef<Record<string, any>>({})
+  const dataRef = useRef<ReportData>({})
   const initRef = useRef(false)
 
-  // keep refs in sync
   useEffect(() => { stepRef.current = reportStep }, [reportStep])
   useEffect(() => { dataRef.current = reportData }, [reportData])
 
-  function getUser() {
+  function getUser(): CivicUser | null {
     try {
       const u = localStorage.getItem(PREFIX + 'user')
       const t = localStorage.getItem(PREFIX + 'token')
       if (u && u !== 'null' && u !== 'undefined' && t && t !== 'null' && t !== 'undefined') {
-        return JSON.parse(u)
+        return JSON.parse(u) as CivicUser
       }
-    } catch { return null }
+    } catch {
+      return null
+    }
     return null
   }
 
@@ -56,12 +81,13 @@ export default function CivicBot() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [msgs, isTyping])
 
+  // FIX 3: useEffect cannot take an async callback directly — wrapped in inner async fn
   useEffect(() => {
     if (initRef.current) return
     initRef.current = true
 
     const user = getUser()
-    const name = user?.name?.split(' ')[0] || ''
+    const name = user?.name?.split(' ')[0] ?? ''
     const loggedIn = !!user
 
     if (loggedIn) {
@@ -69,16 +95,19 @@ export default function CivicBot() {
     } else {
       addBot(`Namaste! Welcome to CivicEye. Please log in to use CivicBot.`, ['Sign in'])
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function stripEmoji(str: string) {
-    return str.replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '').replace(/[\u2702\u2705\u2706\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u2660\u2663\u2665-\u267E\u2680-\u2692\u2694-\u2697\u2699\u269B\u269C\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26CE-\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2708\u2709\u270A-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF-\u27BF\u23E9-\u23F3\u23F8-\u23FA\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u231A\u231B\u24C2]/gu, '').trim()
+  function stripEmoji(str: string): string {
+    return str
+      .replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '')
+      .replace(/[\u2702\u2705\u2706\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u2660\u2663\u2665-\u267E\u2680-\u2692\u2694-\u2697\u2699\u269B\u269C\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26CE-\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2708\u2709\u270A-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF-\u27BF\u23E9-\u23F3\u23F8-\u23FA\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u231A\u231B\u24C2]/gu, '')
+      .trim()
   }
 
-  function addBot(text: string, replies?: string[], opts: Partial<Msg> = {}) {
+  function addBot(text: string, replies?: string[], opts: Partial<Msg> = {}): void {
     setMsgs(m => [...m, { role: 'bot', text: stripEmoji(text), replies, ...opts }])
   }
-  function addUser(text: string) {
+  function addUser(text: string): void {
     setMsgs(m => [...m, { role: 'user', text }])
   }
 
@@ -86,11 +115,11 @@ export default function CivicBot() {
     const lower = text.toLowerCase()
     return ISSUE_CATEGORIES.find(c => lower.includes(c.id) || lower.includes(c.label.toLowerCase()))
   }
-  function detectCity(text: string) {
+  function detectCity(text: string): string {
     const lower = text.toLowerCase()
-    return CITIES.find(c => lower.includes(c.toLowerCase()))
+    return CITIES.find(c => lower.includes(c.toLowerCase())) ?? 'Mumbai'
   }
-  function detectIntent(text: string) {
+  function detectIntent(text: string): string {
     const lower = text.toLowerCase()
     if (/^(hi|hello|hey|namaste)$/.test(lower)) return 'greeting'
     if (lower.includes('report') || lower.includes('issue') || lower.includes('problem')) return 'report'
@@ -101,53 +130,67 @@ export default function CivicBot() {
     return 'unknown'
   }
 
-  async function handleLocationDetect() {
+  // FIX 4: Properly typed async location handler, no floating promise
+  const handleLocationDetect = (): void => {
     if (isDetecting) return
     setIsDetecting(true)
-    addBot('📍 Detecting your location… Please allow location access.', undefined, { showLocBtn: true, isDetecting: true })
-    try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
-      )
-      const { latitude, longitude } = pos.coords
-      let address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-      let city = 'Mumbai'
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-        const d = await res.json()
-        if (d.display_name) address = d.display_name.split(', ').slice(0, 4).join(', ')
-        city = d.address?.city || d.address?.town || d.address?.village || d.address?.municipality || 'Mumbai'
-      } catch (_) { }
+    addBot('Detecting your location... Please allow location access.', undefined, { showLocBtn: true, isDetecting: true })
 
-      const cityMatch = CITIES.find(c => city.toLowerCase().includes(c.toLowerCase())) || CITIES.find(c => address.toLowerCase().includes(c.toLowerCase())) || city
-      const d2 = { ...dataRef.current, latitude, longitude, detectedAddress: address, city: cityMatch, location: address }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        let address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+        let city = 'Mumbai'
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          const d = await res.json() as {
+            display_name?: string
+            address?: { city?: string; town?: string; village?: string; municipality?: string }
+          }
+          if (d.display_name) address = d.display_name.split(', ').slice(0, 4).join(', ')
+          city = d.address?.city ?? d.address?.town ?? d.address?.village ?? d.address?.municipality ?? 'Mumbai'
+        } catch {
+          // use defaults
+        }
 
-      setReportData(d2); dataRef.current = d2
-      addBot('Location Detected!\n\n' + address + '\n\nAny nearby landmark? (Optional)', ['Skip'])
-      setReportStep(5); stepRef.current = 5
-      setProgressStep(4)
-    } catch {
-      addBot('Could not detect location. You can type the location manually.', ['Enter manually'], { showLocBtn: true, showPhotoBtn: true })
-    }
-    setIsDetecting(false)
+        const cityMatch = CITIES.find(c => city.toLowerCase().includes(c.toLowerCase()))
+          ?? CITIES.find(c => address.toLowerCase().includes(c.toLowerCase()))
+          ?? city
+
+        const d2: ReportData = { ...dataRef.current, latitude, longitude, detectedAddress: address, city: cityMatch, location: address }
+        setReportData(d2)
+        dataRef.current = d2
+        addBot('Location Detected!\n\n' + address + '\n\nAny nearby landmark? (Optional)', ['Skip'])
+        setReportStep(5)
+        stepRef.current = 5
+        setProgressStep(4)
+        setIsDetecting(false)
+      },
+      () => {
+        addBot('Could not detect location. You can type the location manually.', ['Enter manually'], { showLocBtn: true, showPhotoBtn: true })
+        setIsDetecting(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
   }
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  // FIX 5: Properly typed file change handler
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = async ev => {
+    reader.onload = async (ev) => {
       const photoData = ev.target?.result as string
-      const d: Record<string, any> = { ...dataRef.current, photo: photoData }
-      setReportData(d); dataRef.current = d
+      const d: ReportData = { ...dataRef.current, photo: photoData }
+      setReportData(d)
+      dataRef.current = d
 
       const step = stepRef.current
-      if (step === 0) addBot(`Photo attached! Please select a category to continue.`)
-      else if (step === 1) addBot(`Photo attached! Please provide details (minimum 10 chars).`)
-      else if (step === 2) addBot(`Photo attached! Enter the location or detect it automatically.`, undefined, { showLocBtn: true })
-      else if (step === 3 || step === 4 || step === 5) addBot(`Photo attached! Ready to submit.`, ['Submit Report'])
+      if (step === 0) addBot('Photo attached! Please select a category to continue.')
+      else if (step === 1) addBot('Photo attached! Please provide details (minimum 10 chars).')
+      else if (step === 2) addBot('Photo attached! Enter the location or detect it automatically.', undefined, { showLocBtn: true })
+      else if (step === 3 || step === 4 || step === 5) addBot('Photo attached! Ready to submit.', ['Submit Report'])
 
-      // Pothole AI refinement
       if (d.category === 'pothole') {
         setIsTyping(true)
         try {
@@ -155,16 +198,17 @@ export default function CivicBot() {
           formData.append('image', file)
           const resp = await fetch('https://wcehackathon2026-cgpaglus.onrender.com/api/predict', { method: 'POST', body: formData })
           if (resp.ok) {
-            const pred = await resp.json()
-            const sev = pred.severity?.toLowerCase() || 'medium'
-            const conf = pred.confidence || 0
-            const updated = {
+            const pred = await resp.json() as { severity?: string; confidence?: number }
+            const sev = pred.severity?.toLowerCase() ?? 'medium'
+            const conf = pred.confidence ?? 0
+            const updated: ReportData = {
               ...dataRef.current,
               sev,
               title: `Pothole detected (${sev} severity)`,
-              description: `A ${sev} severity pothole was detected by AI (Confidence: ${conf}%). ` + (dataRef.current.description || '')
+              description: `A ${sev} severity pothole was detected by AI (Confidence: ${conf}%). ` + (dataRef.current.description ?? '')
             }
-            setReportData(updated); dataRef.current = updated
+            setReportData(updated)
+            dataRef.current = updated
             addBot(`AI System: Pothole detected with ${sev} severity (Confidence: ${conf}%). Details have been autofilled, you can edit them if needed.`, ['Continue'])
           }
         } catch (err) {
@@ -178,19 +222,31 @@ export default function CivicBot() {
     e.target.value = ''
   }
 
-  async function submitReport(landmark: string) {
+  // FIX 6: Properly typed submitReport, safe JSON parsing, no implicit `any`
+  async function submitReport(landmark: string): Promise<void> {
     const userRaw = localStorage.getItem(PREFIX + 'user')
-    const user = userRaw ? JSON.parse(userRaw) : null
     const token = localStorage.getItem(PREFIX + 'token')
+    // FIX 7: Safe parse with explicit type cast
+    const user: CivicUser | null = userRaw ? (JSON.parse(userRaw) as CivicUser) : null
     const data = dataRef.current
 
     if (!user || !token) {
-      localStorage.setItem(PREFIX + 'draft_report', JSON.stringify({ ...data, landmark, draftDate: new Date().toISOString() }))
+      const draft: ReportData & { landmark: string; draftDate: string } = {
+        ...data,
+        landmark,
+        draftDate: new Date().toISOString(),
+      }
+      localStorage.setItem(PREFIX + 'draft_report', JSON.stringify(draft))
       setProgressStep(0)
       const cat = ISSUE_CATEGORIES.find(c => c.id === data.category)
-      addBot(`Draft Saved!\n\n━━━━━━━━━━━━━━\n${cat?.label}\n ${data.description}\n ${data.location}\n ${data.city}\n ${landmark}\n━━━━━━━━━━━━━━\n\n Please log in to submit.`, ['Sign in'])
-      setReportStep(-1); stepRef.current = -1
-      setReportData({}); dataRef.current = {}
+      addBot(
+        `Draft Saved!\n\n━━━━━━━━━━━━━━\n${cat?.label}\n ${data.description}\n ${data.location}\n ${data.city}\n ${landmark}\n━━━━━━━━━━━━━━\n\n Please log in to submit.`,
+        ['Sign in']
+      )
+      setReportStep(-1)
+      stepRef.current = -1
+      setReportData({})
+      dataRef.current = {}
       return
     }
 
@@ -198,124 +254,181 @@ export default function CivicBot() {
     const payload = {
       type: data.category,
       label: cat?.label,
-      title: data.title || data.description?.slice(0, 60) || cat?.label || 'Issue',
-      description: data.description || '',
-      location: data.location || '',
-      city: data.city || 'Mumbai',
+      title: data.title ?? data.description?.slice(0, 60) ?? cat?.label ?? 'Issue',
+      description: data.description ?? '',
+      location: data.location ?? '',
+      city: data.city ?? 'Mumbai',
       lat: data.latitude,
       lng: data.longitude,
-      sev: data.sev || 'medium',
-      imageUrl: data.photo || null,
-      landmark: landmark
+      sev: data.sev ?? 'medium',
+      imageUrl: data.photo ?? null,
+      landmark,
     }
 
     try {
       const resp = await fetch('https://wcehackathon2026-cgpaglus.onrender.com/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       })
 
       if (!resp.ok) {
-        const errDesc = await resp.json()
-        throw new Error(errDesc.error || 'Server error')
+        const errDesc = await resp.json() as { error?: string }
+        throw new Error(errDesc.error ?? 'Server error')
       }
 
-      const newReport = await resp.json()
+      const newReport = await resp.json() as { id: string }
 
-      // Increment local points cache
-      user.points = (user.points || 0) + 10
+      user.points = ((user.points as number) || 0) + 10
       localStorage.setItem(PREFIX + 'user', JSON.stringify(user))
 
       setProgressStep(0)
-      addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`, ['Report another', 'Thank you!'])
-      localStorage.removeItem(PREFIX + 'reports') // Invalidate cache so they fetch fresh from server
-    } catch (e: any) {
-      addBot(`Failed to submit report. Error: ${e.message}`, ['Try again'])
+      addBot(
+        `Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`,
+        ['Report another', 'Thank you!']
+      )
+      localStorage.removeItem(PREFIX + 'reports')
+    } catch (e: unknown) {
+      // FIX 8: `catch (e: any)` replaced with `unknown` + type guard
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      addBot(`Failed to submit report. Error: ${message}`, ['Try again'])
     }
-    setReportStep(0); stepRef.current = 0
-    setReportData({}); dataRef.current = {}
+
+    setReportStep(0)
+    stepRef.current = 0
+    setReportData({})
+    dataRef.current = {}
   }
 
-  function handleReportStep(text: string) {
+  function handleReportStep(text: string): void {
     const lower = text.toLowerCase()
     const step = stepRef.current
     const data = dataRef.current
 
     if (step === -1) {
       if (lower.includes('submit') || lower.includes('send')) {
-        const draft = localStorage.getItem(PREFIX + 'draft_report')
-        if (draft) { const d = JSON.parse(draft); setReportData(d); dataRef.current = d; submitReport(d.landmark || 'Not specified') }
-        else { setReportStep(0); stepRef.current = 0; addBot('No draft found. Start a new report?', ['Report an issue']) }
+        const draftRaw = localStorage.getItem(PREFIX + 'draft_report')
+        if (draftRaw) {
+          const d = JSON.parse(draftRaw) as ReportData & { landmark?: string }
+          setReportData(d)
+          dataRef.current = d
+          void submitReport(d.landmark ?? 'Not specified')
+        } else {
+          setReportStep(0)
+          stepRef.current = 0
+          addBot('No draft found. Start a new report?', ['Report an issue'])
+        }
       } else if (lower.includes('cancel') || lower.includes('discard')) {
         localStorage.removeItem(PREFIX + 'draft_report')
-        setReportStep(0); stepRef.current = 0; setReportData({}); dataRef.current = {}
+        setReportStep(0)
+        stepRef.current = 0
+        setReportData({})
+        dataRef.current = {}
         addBot('Draft discarded. Anything else I can help you with?', ['Report an issue', 'Help me'])
       } else {
         addBot("Your draft is saved! Sign in then say 'submit my report'.", ['Submit my report', 'Cancel draft'])
       }
       return
     }
+
     if (step === 0) {
       const cat = detectCategory(text)
       if (cat) {
-        const d = { ...data, category: cat.id }; setReportData(d); dataRef.current = d
-        setProgressStep(1); setReportStep(1); stepRef.current = 1
+        const d: ReportData = { ...data, category: cat.id }
+        setReportData(d)
+        dataRef.current = d
+        setProgressStep(1)
+        setReportStep(1)
+        stepRef.current = 1
         addBot(`${cat.label} selected.\n\n${cat.followUp}`, undefined, { showPhotoBtn: true })
       } else {
-        addBot('Please select a category:\n\n' + ISSUE_CATEGORIES.map(c => `${c.label}`).join('\n'), ['Pothole', 'Streetlight', 'Waste', 'Water Leak'])
+        addBot(
+          'Please select a category:\n\n' + ISSUE_CATEGORIES.map(c => c.label).join('\n'),
+          ['Pothole', 'Streetlight', 'Waste', 'Water Leak']
+        )
       }
       return
     }
+
     if (step === 1) {
       if (text.trim().length < 10) {
         addBot("Please provide more details.\n\nExample: 'Large pothole near the bus stop, ~2 feet wide'", undefined, { showPhotoBtn: true })
       } else {
-        const d = { ...data, description: text.trim() }; setReportData(d); dataRef.current = d
-        setProgressStep(2); setReportStep(2); stepRef.current = 2
+        const d: ReportData = { ...data, description: text.trim() }
+        setReportData(d)
+        dataRef.current = d
+        setProgressStep(2)
+        setReportStep(2)
+        stepRef.current = 2
         addBot('Got it! Now, enter the location or detect it automatically.', undefined, { showLocBtn: true })
       }
       return
     }
+
     if (step === 2) {
-      if (lower.includes('detect') && lower.includes('location')) { handleLocationDetect(); return }
+      if (lower.includes('detect') && lower.includes('location')) {
+        handleLocationDetect()
+        return
+      }
       if ((lower.includes('use location') || lower.includes('use this')) && data.detectedAddress) {
         const addr = data.detectedAddress
-        const cityMatch = CITIES.find(c => addr.toLowerCase().includes(c.toLowerCase())) || 'Mumbai'
-        const d = { ...data, location: addr, city: cityMatch }; setReportData(d); dataRef.current = d
-        setProgressStep(4); setReportStep(4); stepRef.current = 4
+        const cityMatch = detectCity(addr)
+        const d: ReportData = { ...data, location: addr, city: cityMatch }
+        setReportData(d)
+        dataRef.current = d
+        setProgressStep(4)
+        setReportStep(4)
+        stepRef.current = 4
         addBot(` ${addr}\n\n Any landmark? (Optional)`, ['Skip'], { showPhotoBtn: true })
         return
       }
-      if (text.trim().length < 5) { addBot('Please provide a more specific location.', ['Detect Location'], { showLocBtn: true }); return }
-      const typedCityMatch = CITIES.find(c => text.toLowerCase().includes(c.toLowerCase())) || 'Mumbai'
-      const d = { ...data, location: text.trim(), city: typedCityMatch }; setReportData(d); dataRef.current = d
-      setProgressStep(4); setReportStep(4); stepRef.current = 4
+      if (text.trim().length < 5) {
+        addBot('Please provide a more specific location.', ['Detect Location'], { showLocBtn: true })
+        return
+      }
+      const typedCityMatch = detectCity(text)
+      const d: ReportData = { ...data, location: text.trim(), city: typedCityMatch }
+      setReportData(d)
+      dataRef.current = d
+      setProgressStep(4)
+      setReportStep(4)
+      stepRef.current = 4
       addBot(` ${text.trim()}\n\n Any nearby landmark? (Optional)`, ['Skip'], { showPhotoBtn: !data.photo })
       return
     }
+
     if (step === 4 || step === 5) {
-      if (lower.includes('photo') || lower.includes('yes, add')) { fileRef.current?.click(); return }
-      if (lower.includes('submit')) {
-        submitReport(data.landmark || 'Not specified')
+      if (lower.includes('photo') || lower.includes('yes, add')) {
+        fileRef.current?.click()
         return
       }
-      const lm = (lower === 'skip' || lower === 'none') ? 'Not specified' : (text.trim() || 'Not specified')
-      const d = { ...data, landmark: lm }; setReportData(d); dataRef.current = d
-      setReportStep(5); stepRef.current = 5
-      if (data.photo) addBot(`Landmark: ${lm}\nPhoto attached!\n\nReady to submit.`, ['Submit Report'])
-      else addBot(`Landmark: ${lm}\n\nAdd a photo? Reports with photos are 3× more likely to be resolved!`, ['Yes, add photo', 'Skip & Submit'])
+      if (lower.includes('submit')) {
+        void submitReport(data.landmark ?? 'Not specified')
+        return
+      }
+      const lm = lower === 'skip' || lower === 'none' ? 'Not specified' : (text.trim() || 'Not specified')
+      const d: ReportData = { ...data, landmark: lm }
+      setReportData(d)
+      dataRef.current = d
+      setReportStep(5)
+      stepRef.current = 5
+      if (data.photo) {
+        addBot(`Landmark: ${lm}\nPhoto attached!\n\nReady to submit.`, ['Submit Report'])
+      } else {
+        addBot(`Landmark: ${lm}\n\nAdd a photo? Reports with photos are 3x more likely to be resolved!`, ['Yes, add photo', 'Skip & Submit'])
+      }
       return
     }
   }
 
-  async function handleSend(override?: string) {
-    const text = (override || inputVal).trim()
+  // FIX 9: Floating promise from async handleSend wrapped with void
+  const handleSend = async (override?: string): Promise<void> => {
+    const text = (override ?? inputVal).trim()
     if (!text) return
     setInputVal('')
     addUser(text)
     setIsTyping(true)
-    await new Promise(r => setTimeout(r, 480))
+    await new Promise<void>(r => setTimeout(r, 480))
     setIsTyping(false)
 
     const lower = text.toLowerCase()
@@ -338,47 +451,55 @@ export default function CivicBot() {
       return
     }
 
-    if (step > 0 || step === -1 || isCategory) { handleReportStep(text); return }
+    if (step > 0 || step === -1 || isCategory) {
+      handleReportStep(text)
+      return
+    }
 
     if (lower.includes('submit') && lower.includes('report')) {
-      const draft = localStorage.getItem(PREFIX + 'draft_report')
+      const draftRaw = localStorage.getItem(PREFIX + 'draft_report')
       const userRaw = localStorage.getItem(PREFIX + 'user')
-      if (draft && userRaw) {
-        const d = JSON.parse(draft); setReportData(d); dataRef.current = d
+      if (draftRaw && userRaw) {
+        const d = JSON.parse(draftRaw) as ReportData & { landmark?: string }
+        setReportData(d)
+        dataRef.current = d
         localStorage.removeItem(PREFIX + 'draft_report')
-        submitReport(d.landmark || 'Not specified'); return
+        void submitReport(d.landmark ?? 'Not specified')
+        return
       }
     }
 
     const intent = detectIntent(text)
     switch (intent) {
       case 'greeting':
-        addBot(`Namaste! How can I help?`, ['Report an issue', 'My Civic Points', 'Help me']); break
+        addBot('Namaste! How can I help?', ['Report an issue', 'My Civic Points', 'Help me'])
+        break
       case 'report':
-<<<<<<< HEAD
-=======
-        const u = getUser()
-        if (!u) {
-          addBot('Please log in first to report a civic issue. Reporting as a registered user allows you to track progress in real-time.', ['Sign in'])
-          return
-        }
->>>>>>> origin/param
-        addBot('Let\'s report an issue! What type of issue?\n\nPothole • Streetlight • Waste\nWater Leak • Road • Drainage', ['Pothole', 'Streetlight', 'Waste', 'Water Leak'])
-        setReportStep(0); setProgressStep(1); break
+        addBot(
+          "Let's report an issue! What type of issue?\n\nPothole - Streetlight - Waste\nWater Leak - Road - Drainage",
+          ['Pothole', 'Streetlight', 'Waste', 'Water Leak']
+        )
+        setReportStep(0)
+        setProgressStep(1)
+        break
       case 'points': {
-        const u = JSON.parse(localStorage.getItem(PREFIX + 'user') || '{}')
-        const pts = u.points || 0
+        const u = JSON.parse(localStorage.getItem(PREFIX + 'user') ?? '{}') as CivicUser
+        const pts = (u.points as number) || 0
         const badge = pts < 100 ? 'Bronze' : pts < 500 ? 'Silver' : pts < 1000 ? 'Gold' : 'Diamond'
-        addBot(`Civic Points: ${pts}\nBadge: ${badge}\n\nEarn more:\nSubmit report: +10\nVerified: +25\nResolved: +50`, ['Report an issue']); break
+        addBot(`Civic Points: ${pts}\nBadge: ${badge}\n\nEarn more:\nSubmit report: +10\nVerified: +25\nResolved: +50`, ['Report an issue'])
+        break
       }
       case 'help':
-        addBot('I can help with:\n\nReport issues\nCivic points info\nLocation detection\n\nWhat would you like?', ['Report an issue', 'My points']); break
+        addBot('I can help with:\n\nReport issues\nCivic points info\nLocation detection\n\nWhat would you like?', ['Report an issue', 'My points'])
+        break
       case 'thanks':
-        addBot("You're welcome! Anything else?", ['Report an issue']); break
+        addBot("You're welcome! Anything else?", ['Report an issue'])
+        break
       case 'bye':
-        addBot('Goodbye! 👋 Every report counts. Every voice matters. 🇮🇳', ['Report an issue']); break
+        addBot('Goodbye! Every report counts. Every voice matters.', ['Report an issue'])
+        break
       default:
-        addBot("I'm not sure I understood. How can I help?\n\n📝 Report an issue\n🏆 Check civic points", ['Report an issue', 'Help me'])
+        addBot("I'm not sure I understood. How can I help?\n\nReport an issue\nCheck civic points", ['Report an issue', 'Help me'])
     }
   }
 
@@ -517,7 +638,15 @@ export default function CivicBot() {
         }
       `}</style>
 
-      <input type="file" ref={fileRef} accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFile} />
+      {/* FIX 10: `capture` attribute typed correctly as "environment" literal */}
+      <input
+        type="file"
+        ref={fileRef}
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleFile}
+      />
 
       {/* FAB */}
       {!open && (
@@ -540,13 +669,7 @@ export default function CivicBot() {
             </div>
             <div className="cbb-hi">
               <span className="cbb-title">CivicBot</span>
-<<<<<<< HEAD
               <span className="cbb-status">{getUser() ? 'Logged in' : 'Not logged in'}</span>
-=======
-              <span className="cbb-status" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                Guest
-              </span>
->>>>>>> origin/param
             </div>
             <button className="cbb-close-btn" onClick={() => setOpen(false)} aria-label="Close">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -558,7 +681,8 @@ export default function CivicBot() {
           {/* Progress */}
           {progressStep > 0 && (
             <div className="cbb-prog">
-              {['Category', 'Details', 'Location', 'Landmark'].map((lbl, i) => (
+              {(['Category', 'Details', 'Location', 'Landmark'] as const).map((lbl, i) => (
+                // FIX 11: Use React.Fragment with key (correct approach)
                 <React.Fragment key={lbl}>
                   <div className={`cbb-ps${progressStep > i ? ' on' : ''}`}>
                     <span>{i + 1}</span>
@@ -579,18 +703,18 @@ export default function CivicBot() {
                   <div className="cbb-acts">
                     {m.showLocBtn && (
                       <button className="cbb-loc-btn" onClick={handleLocationDetect} disabled={isDetecting}>
-                        {isDetecting ? '🔄 Detecting…' : '📍 Detect Location'}
+                        {isDetecting ? 'Detecting...' : 'Detect Location'}
                       </button>
                     )}
                     {m.showPhotoBtn && (
-                      <button className="cbb-photo-btn" onClick={() => fileRef.current?.click()}>📸 Add Photo</button>
+                      <button className="cbb-photo-btn" onClick={() => fileRef.current?.click()}>Add Photo</button>
                     )}
                   </div>
                 )}
                 {m.role === 'bot' && m.replies && m.replies.length > 0 && (
                   <div className="cbb-qrs">
                     {m.replies.map(r => (
-                      <button key={r} className="cbb-qr" onClick={() => handleSend(r)}>{r}</button>
+                      <button key={r} className="cbb-qr" onClick={() => void handleSend(r)}>{r}</button>
                     ))}
                   </div>
                 )}
@@ -607,12 +731,12 @@ export default function CivicBot() {
           <div className="cbb-input-row">
             <input
               className="cbb-input"
-              placeholder="Message CivicBot…"
+              placeholder="Message CivicBot..."
               value={inputVal}
               onChange={e => setInputVal(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              onKeyDown={e => { if (e.key === 'Enter') void handleSend() }}
             />
-            <button className="cbb-send" onClick={() => handleSend()} aria-label="Send">
+            <button className="cbb-send" onClick={() => void handleSend()} aria-label="Send">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
