@@ -6352,10 +6352,11 @@
             async function submitReport(landmark) {
                 const u = getUser()
                 const token = localStorage.getItem(PREFIX + 'token')
+                const cat = ISSUE_CATEGORIES.find(c => c.id === data.category)
+
                 if (!u || !token) {
                     localStorage.setItem(PREFIX + 'draft_report', JSON.stringify({ ...data, landmark, draftDate: new Date().toISOString() }))
                     setProgress(0)
-                    const cat = ISSUE_CATEGORIES.find(c => c.id === data.category)
                     addBot(`Draft Saved!\n\n━━━━━━━━━━━━━━\n${cat?.label}\n📝 ${data.description}\n📍 ${data.location}\n🏙️ ${data.city}\n🏢 ${landmark}\n━━━━━━━━━━━━━━\n\n🔒 Please log in to submit.`, ['Sign in'])
                     step = -1; data = {}; return
                 }
@@ -6379,8 +6380,20 @@
 
                     u.points = (u.points || 0) + 10; localStorage.setItem(PREFIX + 'user', JSON.stringify(u))
                     setProgress(0)
+                    
+                    try {
+                        const existing = GR()
+                        existing.unshift(newReport)
+                        localStorage.setItem(PREFIX + 'reports', JSON.stringify(existing))
+                        if (typeof renderFeed !== 'undefined' && typeof feedFilter !== 'undefined') {
+                            renderFeed(feedFilter)
+                            if (typeof buildStats !== 'undefined') buildStats()
+                        }
+                    } catch (err) {
+                        console.error('Failed to update reports cache:', err)
+                    }
+
                     addBot(`Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`, ['Report another', 'Thank you!'])
-                    localStorage.removeItem(PREFIX + 'reports') // Invalidate to fetch fresh
                 } catch (e) {
                     addBot(`Failed to submit. Error: ${e.message}`, ['Try again'])
                 }

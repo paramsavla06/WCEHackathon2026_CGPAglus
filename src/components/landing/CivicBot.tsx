@@ -277,17 +277,26 @@ export default function CivicBot() {
         throw new Error(errDesc.error ?? 'Server error')
       }
 
-      const newReport = await resp.json() as { id: string }
+      const newReport = await resp.json() as { id: string; [key: string]: unknown }
 
       user.points = ((user.points as number) || 0) + 10
       localStorage.setItem(PREFIX + 'user', JSON.stringify(user))
+
+      // Update local reports cache so it shows up in dashboard immediately
+      try {
+        const existingRaw = localStorage.getItem(PREFIX + 'reports')
+        const existing = existingRaw ? (JSON.parse(existingRaw) as unknown[]) : []
+        existing.unshift(newReport)
+        localStorage.setItem(PREFIX + 'reports', JSON.stringify(existing))
+      } catch (err) {
+        console.error('Failed to update reports cache:', err)
+      }
 
       setProgressStep(0)
       addBot(
         `Report Submitted!\n\n━━━━━━━━━━━━━━\nID: ${newReport.id}\n${cat?.label}\nLocation: ${data.location}, ${data.city}\nLandmark: ${landmark}\n${data.photo ? 'Photo attached\n' : ''}━━━━━━━━━━━━━━\n\n+10 Civic Points earned!`,
         ['Report another', 'Thank you!']
       )
-      localStorage.removeItem(PREFIX + 'reports')
     } catch (e: unknown) {
       // FIX 8: `catch (e: any)` replaced with `unknown` + type guard
       const message = e instanceof Error ? e.message : 'Unknown error'
