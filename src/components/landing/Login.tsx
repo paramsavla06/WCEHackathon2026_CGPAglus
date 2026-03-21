@@ -44,11 +44,6 @@ export default function Login({ onShowToast }: LoginProps) {
     const doLogin = async () => {
         if (!username || !pass) { onShowToast('Please fill in all fields'); return }
         setLoading(true)
-<<<<<<< HEAD
-=======
-        localStorage.removeItem('ce_token')
-        localStorage.removeItem('ce_user')
->>>>>>> origin/param
         if (isGovEmail(username)) {
             onShowToast('Government email? Use the "Government Officer" tab instead.')
             setLoading(false); return
