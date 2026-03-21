@@ -44,28 +44,14 @@ export default function CivicBot() {
   function getUser() {
     try {
       const u = localStorage.getItem(PREFIX + 'user')
-<<<<<<< HEAD
-      if (u && u !== 'null' && u !== 'undefined') return JSON.parse(u)
-=======
       const t = localStorage.getItem(PREFIX + 'token')
       if (u && u !== 'null' && u !== 'undefined' && t && t !== 'null' && t !== 'undefined') {
         return JSON.parse(u)
       }
->>>>>>> origin/param
     } catch { return null }
     return null
   }
 
-<<<<<<< HEAD
-=======
-  const doLogout = () => {
-    localStorage.removeItem(PREFIX + 'token')
-    localStorage.removeItem(PREFIX + 'user')
-    localStorage.removeItem(PREFIX + 'reports')
-    window.location.reload()
-  }
-
->>>>>>> origin/param
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [msgs, isTyping])
@@ -76,20 +62,12 @@ export default function CivicBot() {
 
     const user = getUser()
     const name = user?.name?.split(' ')[0] || ''
-<<<<<<< HEAD
     const loggedIn = !!user
-=======
-    const loggedIn = false // FORCE GUEST
->>>>>>> origin/param
 
     if (loggedIn) {
       addBot(`Namaste ${name}! Welcome to CivicEye. How can I help you today?`, ['Report an issue', 'My Civic Points', 'Help me'])
     } else {
-<<<<<<< HEAD
       addBot(`Namaste! Welcome to CivicEye. Please log in to use CivicBot.`, ['Sign in'])
-=======
-      addBot(`Namaste! Welcome to CivicEye. Please log in to report issues and track your progress.`, ['Sign in', 'How it works'])
->>>>>>> origin/param
     }
   }, [])
 

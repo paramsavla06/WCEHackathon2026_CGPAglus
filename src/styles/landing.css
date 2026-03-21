@@ -3296,10 +3296,6 @@ body.db-cursor-big #curR {
     /* Restore real cursor on touch */
     body { cursor: auto !important; }
     #ce-cur, #ce-curR { display: none !important; }
-<<<<<<< HEAD
-=======
-    .ce-flycard { display: none !important; }
->>>>>>> origin/param
 
     /* Nav */
     .ce-nav { padding: 14px 20px; gap: 12px; }
@@ -3375,4 +3371,4 @@ body.db-cursor-big #curR {
     .ce-sec { padding: 44px 16px; }
     .ce-scell { flex: 1 1 100%; border-right: none !important; border-bottom: .5px solid var(--b); }
     .ce-scell:last-child { border-bottom: none; }
-}
+}
