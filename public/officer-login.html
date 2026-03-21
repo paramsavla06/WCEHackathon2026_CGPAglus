@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>CivicEye — Government Officer Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --grn: #138808;
+      --grn-bg: rgba(19, 136, 8, .12);
+      --ink: #faf4ea;
+      --surf: #fff;
+      --surf2: #fdf5e8;
+      --b: rgba(120, 70, 10, .08);
+      --b2: rgba(120, 70, 10, .16);
+      --txt: #0a0a0a;
+      --txt2: #4a4a4a;
+      --txt3: #757575;
+      --red: #f43f5e;
+      --saffron: #cf7500;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Sora', sans-serif;
+      background: var(--ink);
+      color: var(--txt);
+      overflow-x: hidden;
+      cursor: none
+    }
+
+    #cur {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--grn);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width .15s, height .15s
+    }
+
+    #curR {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(19, 136, 8, .5);
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width .22s, height .22s
+    }
+
+    /* BG */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none
+    }
+
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(19, 136, 8, .03)1px, transparent 1px), linear-gradient(90deg, rgba(19, 136, 8, .03)1px, transparent 1px);
+      background-size: 52px 52px
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none
+    }
+
+    .orb-a {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(19, 136, 8, .07), transparent 70%);
+      top: -100px;
+      left: -80px
+    }
+
+    .orb-b {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255, 153, 51, .05), transparent 70%);
+      bottom: -40px;
+      right: -40px
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(56px);
+      background: var(--surf);
+      color: var(--txt);
+      border: .5px solid var(--b2);
+      padding: 9px 20px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 9999;
+      opacity: 0;
+      transition: all .35s;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .2)
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0)
+    }
+
+    /* LAYOUT */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      z-index: 1
+    }
+
+    /* CARD */
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--surf);
+      border: .5px solid var(--b2);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+      animation: cardIn .6s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(.97)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* GOV BAR */
+    .gov-bar {
+      background: var(--grn);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10.5px;
+      color: rgba(255, 255, 255, .88)
+    }
+
+    .gov-pip {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, .7);
+      animation: pip 2s ease-in-out infinite;
+      flex-shrink: 0
+    }
+
+    @keyframes pip {
+
+      0%,
+      100% {
+        box-shadow: 0 0 6px rgba(255, 255, 255, .6)
+      }
+
+      50% {
+        box-shadow: 0 0 14px rgba(255, 255, 255, .9), 0 0 0 3px rgba(255, 255, 255, .15)
+      }
+    }
+
+    /* HEADER */
+    .ch {
+      padding: 28px 28px 20px;
+      text-align: center;
+      border-bottom: .5px solid var(--b)
+    }
+
+    .ch-logo {
+      font-family: 'Yeseva One', serif;
+      font-size: 26px;
+      color: var(--txt);
+      margin-bottom: 4px
+    }
+
+    .ch-logo span {
+      color: var(--grn)
+    }
+
+    .ch-sub {
+      font-size: 11.5px;
+      color: var(--txt3);
+      margin-bottom: 14px
+    }
+
+    .ch-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--grn-bg);
+      border: .5px solid rgba(19, 136, 8, .3);
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--grn);
+      letter-spacing: .06em
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 14px 20px 0;
+      background: var(--surf2)
+    }
+
+    .tab {
+      flex: 1;
+      padding: 9px;
+      border-radius: 10px 10px 0 0;
+      font-family: 'Sora', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      color: var(--txt3);
+      cursor: none;
+      transition: all .2s
+    }
+
+    .tab.on {
+      background: var(--surf);
+      color: var(--txt);
+      box-shadow: 0 -2px 0 var(--grn) inset
+    }
+
+    /* BODY */
+    .cb {
+      padding: 22px 28px 28px
+    }
+
+    /* INPUT */
+    .inp-wrap {
+      margin-bottom: 13px
+    }
+
+    .inp-lbl {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--txt3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 6px
+    }
+
+    .inp {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--ink);
+      border: .5px solid var(--b2);
+      border-radius: 10px;
+      color: var(--txt);
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: all .2s
+    }
+
+    .inp::placeholder {
+      color: var(--txt3)
+    }
+
+    .inp:focus {
+      border-color: var(--grn);
+      box-shadow: 0 0 0 3px rgba(19, 136, 8, .12)
+    }
+
+    .inp-hint {
+      font-size: 10px;
+      color: var(--txt3);
+      margin-top: 4px
+    }
+
+    .inp-err {
+      font-size: 10px;
+      color: var(--red);
+      margin-top: 4px
+    }
+
+    /* ROW */
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    /* BTN */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--grn), #074c04);
+      color: #fff;
+      border: none;
+      border-radius: 11px;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: none;
+      transition: all .22s;
+      letter-spacing: .03em;
+      margin-top: 6px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(19, 136, 8, .4)
+    }
+
+    .btn:disabled {
+      opacity: .6;
+      pointer-events: none
+    }
+
+    .btn-load {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, .35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* DIVIDER */
+    .div {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0
+    }
+
+    .div-line {
+      flex: 1;
+      height: .5px;
+      background: var(--b2)
+    }
+
+    .div-txt {
+      font-size: 10px;
+      color: var(--txt3)
+    }
+
+    /* LINK */
+    .link {
+      text-align: center;
+      font-size: 11px;
+      color: var(--txt3);
+      margin-top: 14px
+    }
+
+    .link a {
+      color: var(--grn);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: none
+    }
+
+    .link a:hover {
+      text-decoration: underline
+    }
+
+    /* GOV NOTE */
+    .gov-note {
+      background: var(--grn-bg);
+      border: .5px solid rgba(19, 136, 8, .22);
+      border-radius: 10px;
+      padding: 10px 13px;
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      margin-bottom: 16px
+    }
+
+    .gov-note-ico {
+      flex-shrink: 0;
+      color: var(--grn);
+      margin-top: 1px
+    }
+
+    .gov-note-txt {
+      font-size: 11px;
+      color: var(--txt2);
+      line-height: 1.6
+    }
+
+    .gov-note-txt strong {
+      color: var(--txt);
+      display: block;
+      margin-bottom: 2px
+    }
+
+    select.inp {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5e78' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px
+    }
+
+    /* hover effects */
+    button:hover #cur,
+    a:hover #cur {
+      width: 4px;
+      height: 4px
+    }
+
+    /* ─── Mobile ─── */
+    @media (hover: none) {
+      body {
+        cursor: auto !important;
+      }
+
+      #cur,
+      #curR {
+        display: none !important;
+      }
+
+      button,
+      a,
+      input,
+      select {
+        cursor: pointer !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 16px;
+        align-items: stretch;
+      }
+
+      .card {
+        max-width: 100%;
+        border-radius: 16px;
+      }
+
+      .ch {
+        padding: 22px 18px 16px;
+      }
+
+      .cb {
+        padding: 18px 18px 22px;
+      }
+
+      .tabs {
+        padding: 12px 14px 0;
+      }
+
+      .btn {
+        padding: 12px;
+      }
+
+      .row2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg">
+    <div class="bg-grid"></div>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+  </div>
+  <div id="cur"></div>
+  <div id="curR"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="page">
+    <div class="card">
+
+      <!-- GOV IDENTITY BAR -->
+      <div class="gov-bar">
+        <div class="gov-pip"></div>
+        <span>🇮🇳 Government of India &nbsp;·&nbsp; CivicEye Officer Portal &nbsp;·&nbsp; Secure Access</span>
+      </div>
+
+      <!-- HEADER -->
+      <div class="ch">
+        <div class="ch-logo">Civic<span>Eye</span></div>
+        <div class="ch-sub">Municipal Corporation — Officer Management System</div>
+        <div class="ch-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          Restricted Access · @gov.in Only
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab on" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+        <button class="tab" id="tabReg" onclick="switchTab('reg')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="cb" id="loginForm">
+        <div class="gov-note">
+          <div class="gov-note-ico">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8h.01M11 12h1v4h1" />
+            </svg>
+          </div>
+          <div class="gov-note-txt">
+            <strong>Government Officers Only</strong>
+            This portal is restricted to verified government officials with an official <code
+              style="font-size:10px;background:rgba(19,136,8,.15);padding:1px 5px;border-radius:3px">@gov.in</code>
+            email address.
+          </div>
+        </div>
+
+        <div class="inp-wrap">
+          <label class="inp-lbl">Official Email</label>
+          <input class="inp" id="loginEmail" type="email" placeholder="name@department.gov.in" autocomplete="email" />
+          <div class="inp-hint">Must end with @gov.in</div>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Password</label>
+          <input class="inp" id="loginPass" type="password" placeholder="Enter your password"
+            autocomplete="current-password" />
+        </div>
+        <button class="btn" id="loginBtn" onclick="doLogin()">Sign In to Officer Portal</button>
+        <div class="link">Don't have an account? <a href="#" onclick="switchTab('reg');return false">Register here →</a>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="cb" id="regForm" style="display:none">
+        <div class="gov-note">
+          <div class="gov-note-ico">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div class="gov-note-txt">
+            <strong>First-Time Registration</strong>
+            Register using your official government email. Your account will be verified against the MCGM officer
+            directory.
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="inp-wrap">
+            <label class="inp-lbl">First Name</label>
+            <input class="inp" id="regFirst" type="text" placeholder="Rajesh" />
+          </div>
+          <div class="inp-wrap">
+            <label class="inp-lbl">Last Name</label>
+            <input class="inp" id="regLast" type="text" placeholder="Kumar" />
+          </div>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Official Email</label>
+          <input class="inp" id="regEmail" type="email" placeholder="rajesh.kumar@mcgm.gov.in" />
+          <div class="inp-hint">Must end with @gov.in</div>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Department</label>
+          <select class="inp" id="regDept">
+            <option value="Roads & Infrastructure">Roads &amp; Infrastructure</option>
+            <option value="Water Supply & Sewerage">Water Supply &amp; Sewerage</option>
+            <option value="Solid Waste Management">Solid Waste Management</option>
+            <option value="Streetlights & Electrical">Streetlights &amp; Electrical</option>
+            <option value="Parks & Gardens">Parks &amp; Gardens</option>
+            <option value="Health & Sanitation">Health &amp; Sanitation</option>
+            <option value="Building & Permissions">Building &amp; Permissions</option>
+            <option value="Storm Water Drains">Storm Water Drains</option>
+          </select>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Zone</label>
+          <select class="inp" id="regZone">
+            <option value="Zone 1">Zone 1 — South Mumbai</option>
+            <option value="Zone 2">Zone 2 — Island City</option>
+            <option value="Zone 3">Zone 3 — Western Suburbs (S)</option>
+            <option value="Zone 4" selected>Zone 4 — Western Suburbs (N)</option>
+            <option value="Zone 5">Zone 5 — Eastern Suburbs (S)</option>
+            <option value="Zone 6">Zone 6 — Eastern Suburbs (N)</option>
+          </select>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Password</label>
+          <input class="inp" id="regPass" type="password" placeholder="Min 8 characters" />
+          <div class="inp-err" id="regPassErr"></div>
+        </div>
+        <button class="btn" id="regBtn" onclick="doRegister()">Create Officer Account</button>
+        <div class="link">Already registered? <a href="#" onclick="switchTab('login');return false">Sign in →</a></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API = 'https://wcehackathon2026-cgpaglus.onrender.com'
+
+    /* cursor */
+    const CUR = document.getElementById('cur'), CURR = document.getElementById('curR')
+    let mx = 0, my = 0, rx = 0, ry = 0
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; CUR.style.left = mx + 'px'; CUR.style.top = my + 'px' })
+      ; (function loop() { rx += (mx - rx) * .11; ry += (my - ry) * .11; CURR.style.left = rx + 'px'; CURR.style.top = ry + 'px'; requestAnimationFrame(loop) })()
+    document.querySelectorAll('button,a,input,select').forEach(el => {
+      el.addEventListener('mouseenter', () => { CUR.style.width = '4px'; CUR.style.height = '4px'; CURR.style.width = '40px'; CURR.style.height = '40px' })
+      el.addEventListener('mouseleave', () => { CUR.style.width = '8px'; CUR.style.height = '8px'; CURR.style.width = '28px'; CURR.style.height = '28px' })
+    })
+
+    /* toast */
+    function toast(m, dur = 3000) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur) }
+
+    /* tabs */
+    function switchTab(t) {
+      document.getElementById('loginForm').style.display = t === 'login' ? 'block' : 'none'
+      document.getElementById('regForm').style.display = t === 'reg' ? 'block' : 'none'
+      document.getElementById('tabLogin').classList.toggle('on', t === 'login')
+      document.getElementById('tabReg').classList.toggle('on', t === 'reg')
+    }
+
+    /* login */
+    async function doLogin() {
+      const email = document.getElementById('loginEmail').value.trim()
+      const pass = document.getElementById('loginPass').value
+      if (!email || !pass) { toast('Please fill in both fields'); return }
+      if (!email.toLowerCase().endsWith('@gov.in')) { toast('Only @gov.in email addresses are allowed'); return }
+      const btn = document.getElementById('loginBtn')
+      btn.innerHTML = '<span class="btn-load"></span>Signing in…'; btn.disabled = true
+      try {
+        const res = await fetch(`${API}/api/officer/login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        })
+        const data = await res.json()
+        if (!res.ok) { toast(data.error || 'Login failed'); btn.innerHTML = 'Sign In to Officer Portal'; btn.disabled = false; return }
+        localStorage.setItem('ce_token', data.token)
+        localStorage.setItem('ce_officer', JSON.stringify(data.officer))
+        localStorage.removeItem('ce_user')
+        toast(`Welcome, ${data.officer.name}! Redirecting…`)
+        setTimeout(() => { window.location.href = '/officer.html' }, 900)
+      } catch (e) {
+        toast('Cannot connect — is the backend running on port 4000?')
+        btn.innerHTML = 'Sign In to Officer Portal'; btn.disabled = false
+      }
+    }
+
+    /* register */
+    async function doRegister() {
+      const first = document.getElementById('regFirst').value.trim()
+      const last = document.getElementById('regLast').value.trim()
+      const email = document.getElementById('regEmail').value.trim()
+      const dept = document.getElementById('regDept').value
+      const zone = document.getElementById('regZone').value
+      const pass = document.getElementById('regPass').value
+      const errEl = document.getElementById('regPassErr')
+      errEl.textContent = ''
+      if (!first || !email || !pass) { toast('Please fill in all required fields'); return }
+      if (!email.toLowerCase().endsWith('@gov.in')) { toast('Only @gov.in email addresses can register'); return }
+      if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return }
+      const btn = document.getElementById('regBtn')
+      btn.innerHTML = '<span class="btn-load"></span>Creating account…'; btn.disabled = true
+      try {
+        const res = await fetch(`${API}/api/officer/register`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email, password: pass,
+            name: first + (last ? ' ' + last : ''),
+            department: dept, zone
+          })
+        })
+        const data = await res.json()
+        if (!res.ok) { toast(data.error || 'Registration failed'); btn.innerHTML = 'Create Officer Account'; btn.disabled = false; return }
+        localStorage.setItem('ce_token', data.token)
+        localStorage.setItem('ce_officer', JSON.stringify(data.officer))
+        localStorage.removeItem('ce_user')
+        toast(`Account created! Welcome, ${data.officer.name}!`)
+        setTimeout(() => { window.location.href = '/officer.html' }, 900)
+      } catch (e) {
+        toast('Cannot connect — is the backend running on port 4000?')
+        btn.innerHTML = 'Create Officer Account'; btn.disabled = false
+      }
+    }
+
+    /* enter key support */
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return
+      if (document.getElementById('loginForm').style.display !== 'none') doLogin()
+      else doRegister()
+    })
+
+    /* check if already logged in as officer */
+    const existingToken = localStorage.getItem('ce_token')
+    const existingOfficer = localStorage.getItem('ce_officer')
+    if (existingToken && existingOfficer) {
+      fetch(`${API}/api/officer/me`, { headers: { Authorization: 'Bearer ' + existingToken } })
+        .then(r => r.ok ? window.location.href = '/officer.html' : null)
+        .catch(() => { })
+    }
+  </script>
+</body>
+
+</html>
