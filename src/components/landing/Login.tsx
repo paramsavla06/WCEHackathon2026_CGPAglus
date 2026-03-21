@@ -44,6 +44,11 @@ export default function Login({ onShowToast }: LoginProps) {
     const doLogin = async () => {
         if (!username || !pass) { onShowToast('Please fill in all fields'); return }
         setLoading(true)
+<<<<<<< HEAD
+=======
+        localStorage.removeItem('ce_token')
+        localStorage.removeItem('ce_user')
+>>>>>>> origin/param
         if (isGovEmail(username)) {
             onShowToast('Government email? Use the "Government Officer" tab instead.')
             setLoading(false); return
@@ -78,6 +83,11 @@ export default function Login({ onShowToast }: LoginProps) {
         if (regPass.length < 8) { setPassErr('Min 8 characters'); return }
         setPassErr('')
         setLoading(true)
+<<<<<<< HEAD
+=======
+        localStorage.removeItem('ce_token')
+        localStorage.removeItem('ce_user')
+>>>>>>> origin/param
         const fullName = firstName + (lastName ? ' ' + lastName : '')
         const initials = (firstName[0] + (lastName[0] || firstName[1] || '')).toUpperCase()
         try {

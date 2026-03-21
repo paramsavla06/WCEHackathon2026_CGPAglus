@@ -3296,6 +3296,10 @@ body.db-cursor-big #curR {
     /* Restore real cursor on touch */
     body { cursor: auto !important; }
     #ce-cur, #ce-curR { display: none !important; }
+<<<<<<< HEAD
+=======
+    .ce-flycard { display: none !important; }
+>>>>>>> origin/param
 
     /* Nav */
     .ce-nav { padding: 14px 20px; gap: 12px; }
